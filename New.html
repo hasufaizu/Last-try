@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5 Days Signals Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #ffffff;
+      text-align: center;
+      padding: 20px;
+      color: #1d1d35;
+      margin: 0;
+    }
+    h1 {
+      font-size: 6vw;
+      font-weight: 700;
+      color: #1d1d35;
+    }
+    .input-group {
+      margin: 10px 0;
+    }
+    input {
+      padding: 10px;
+      margin: 5px 2px;
+      font-size: 4vw;
+      width: 80%;
+      max-width: 300px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 4vw;
+      background: #1d1d35;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .result-section {
+      margin-top: 20px;
+    }
+    .profit-percent {
+      font-size: 9vw;
+      font-weight: 700;
+      color: green;
+      margin: 10px 0;
+    }
+    .returns {
+      font-size: 4vw;
+      margin-top: 10px;
+    }
+    .footer {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 4vw;
+    }
+    #reportOutput {
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>5 DAYS SIGNALS REPORT</h1>  <div class="input-group">
+    <input type="text" id="coinName" placeholder="Coin Name (e.g., FUN/USDT)">
+    <input type="number" id="coinProfit" placeholder="Profit % (e.g., 1050)">
+    <button onclick="addData()">Add Signal</button>
+    <button onclick="generateChart()">Generate Chart</button>
+    <button onclick="downloadReport()">Download Report</button>
+  </div>  <div id="summary"></div>  <div id="reportOutput">
+    <canvas id="pieChart"></canvas><div class="result-section" id="results" style="display: none;">
+  <div><strong>TOTAL COMBINED PROFIT:</strong><br><small>(After subtracting losses)</small></div>
+  <div class="profit-percent" id="totalProfit"></div>
+  <div class="returns" id="returnCalc"></div>
+  <div class="footer">MEXC Traders</div>
+</div>
+
+  </div>  <script>
+    let coins = [];
+
+    function addData() {
+      const coin = document.getElementById("coinName").value;
+      const profit = parseFloat(document.getElementById("coinProfit").value);
+
+      if (!coin || isNaN(profit)) {
+        alert("Please enter valid coin and profit.");
+        return;
+      }
+
+      coins.push({ coin, profit });
+      document.getElementById("coinName").value = '';
+      document.getElementById("coinProfit").value = '';
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const summary = document.getElementById("summary");
+      summary.innerHTML = '<strong>Signals Added:</strong><br>' + coins.map(c => `${c.coin} ${c.profit >= 0 ? '+' : ''}${c.profit}%`).join('<br>');
+    }
+
+    function generateChart() {
+      if (coins.length === 0) return alert("Add at least one signal.");
+
+      const ctx = document.getElementById('pieChart').getContext('2d');
+      const labels = coins.map(c => `${c.coin} ${c.profit >= 0 ? '+' : ''}${c.profit}%`);
+      const data = coins.map(c => Math.abs(c.profit));
+      const total = coins.reduce((acc, c) => acc + c.profit, 0);
+
+      const colors = ['#ff9f40', '#4bc0c0', '#9966ff', '#333333', '#ffcd56', '#36a2eb', '#ff6384'];
+
+      if (window.pie) window.pie.destroy();
+
+      window.pie = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: colors.slice(0, coins.length),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+
+      document.getElementById("results").style.display = 'block';
+      document.getElementById("totalProfit").innerText = `${total >= 0 ? '+' : ''}${total.toFixed(0)}%`;
+      const multiplier = 1 + total / 100;
+      document.getElementById("returnCalc").innerHTML = `
+        $100 → $${(100 * multiplier).toFixed(0)}<br>
+        $500 → $${(500 * multiplier).toFixed(0)}<br>
+        $1000 → $${(1000 * multiplier).toFixed(0)}
+      `;
+    }
+
+    function downloadReport() {
+      const element = document.getElementById("reportOutput");
+      html2canvas(element).then(canvas => {
+        const link = document.createElement('a');
+        link.download = '5_days_signals_report.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+  </script></body>
+</html>
