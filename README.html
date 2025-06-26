@@ -124,13 +124,20 @@
     </header>
 
     <section>
+      <label for="tradetype">Trade Type:</label>
+      <select id="tradetype">
+        <option value="scalping">Scalping (5-15m)</option>
+        <option value="intraday">Intra-day (1h-8h)</option>
+      </select>
+
       <label for="timeframe">Select Timeframe:</label>
-      <select id="timeframe" name="timeframe">
-        <option value="1m">1 Minute</option>
-        <option value="3m">3 Minutes</option>
+      <select id="timeframe">
         <option value="5m">5 Minutes</option>
         <option value="15m">15 Minutes</option>
+        <option value="1h">1 Hour</option>
+        <option value="4h">4 Hours</option>
       </select>
+
       <button onclick="startIndicatorScan()">Start Indicator Scan</button>
     </section>
 
@@ -179,6 +186,7 @@
 
     async function startIndicatorScan() {
       const tf = document.getElementById("timeframe").value;
+      const tradeType = document.getElementById("tradetype").value;
       const log = document.getElementById("log");
       const progressBar = document.getElementById("progress-bar");
       const chartContainer = document.getElementById("chart");
@@ -188,6 +196,18 @@
       chartContainer.innerHTML = "";
       signalsContainer.innerHTML = "";
       progressBar.style.width = "0%";
+
+      // Logic variation by trade type
+      let entryThreshold, stopMult, targetMult;
+      if (tradeType === "scalping") {
+        entryThreshold = 0.25;
+        stopMult = 0.8;
+        targetMult = 1.5;
+      } else {
+        entryThreshold = 0.5;
+        stopMult = 1.5;
+        targetMult = 3.0;
+      }
 
       const res = await fetch("https://fapi.binance.com/fapi/v1/exchangeInfo");
       const data = await res.json();
@@ -216,10 +236,10 @@
 
           const intervalTV = tf.replace("m", "").replace("h", "60");
 
-          if (trendUp && lastClose > previousClose + atr * 0.25) {
+          if (trendUp && lastClose > previousClose + atr * entryThreshold) {
             const entry = lastClose;
-            const stoploss = (entry - atr * 1.0).toFixed(4);
-            const target = (entry + atr * 2.5).toFixed(4);
+            const stoploss = (entry - atr * stopMult).toFixed(4);
+            const target = (entry + atr * targetMult).toFixed(4);
             const currentPrice = entry;
             if (currentPrice > stoploss && currentPrice < target) {
               collectedSignals.push({
@@ -230,10 +250,10 @@
             }
           }
 
-          if (trendDown && lastClose < previousClose - atr * 0.25) {
+          if (trendDown && lastClose < previousClose - atr * entryThreshold) {
             const entry = lastClose;
-            const stoploss = (entry + atr * 1.0).toFixed(4);
-            const target = (entry - atr * 2.5).toFixed(4);
+            const stoploss = (entry + atr * stopMult).toFixed(4);
+            const target = (entry - atr * targetMult).toFixed(4);
             const currentPrice = entry;
             if (currentPrice < stoploss && currentPrice > target) {
               collectedSignals.push({
