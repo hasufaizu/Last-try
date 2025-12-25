@@ -1,134 +1,204 @@
 <!DOCTYPE html>
-<html lang="ur" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>۱۰ محرم الحرام - واقعہ کربلا</title>
-  <style>
-    body {
-      font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Noto Sans Arabic', sans-serif;
-      background: #f3f3f3;
-      margin: 0;
-      padding: 0;
-      line-height: 2;
-      color: #333;
-    }
-    .container {
-      max-width: 900px;
-      margin: 20px auto;
-      background: #fff;
-      padding: 30px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
-    }
-    h1, h2, h3 {
-      color: #6d0c0c;
-      text-align: center;
-    }
-    h1 {
-      font-size: 32px;
-      margin-bottom: 20px;
-    }
-    h2 {
-      font-size: 26px;
-      margin-top: 30px;
-    }
-    h3 {
-      font-size: 22px;
-      margin-top: 25px;
-    }
-    p {
-      margin: 15px 0;
-      font-size: 20px;
-    }
-    ul {
-      margin: 15px 40px;
-      font-size: 20px;
-    }
-    .dua {
-      background: #f9f2e8;
-      border-right: 5px solid #c69c6d;
-      padding: 15px;
-      margin: 20px 0;
-      font-size: 20px;
-    }
-    .ad-container {
-      text-align: center;
-      margin: 30px 0;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICT Advanced Futures Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0b0e11; color: #eaecef; font-family: 'Inter', sans-serif; }
+        .card { background: #1e2329; border: 1px solid #363c4e; border-radius: 12px; }
+        .bullish { color: #02c076; }
+        .bearish { color: #f84960; }
+        .badge-ok { background: #02c07622; color: #02c076; border: 1px solid #02c07644; }
+        .loader-bar { transition: width 0.3s ease; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <h1>۱۰ محرم الحرام – واقعہ کربلا اور اس دن کی فضیلت</h1>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-yellow-400 tracking-tight">ICT <span class="text-white">FUTURES SCANNER</span></h1>
+                <p class="text-gray-400 text-sm">Scanning ADR Consolidation & Daily Bias</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-3 items-end">
+                <div class="flex flex-col">
+                    <label class="text-xs text-gray-500 mb-1 ml-1">REQUIRED BIAS</label>
+                    <select id="biasSelect" class="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 outline-none focus:border-yellow-500">
+                        <option value="Bullish">Bullish (EMA9 Up)</option>
+                        <option value="Bearish">Bearish (EMA9 Down)</option>
+                    </select>
+                </div>
+                <button onclick="runGlobalScan()" id="scanBtn" class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-8 py-2 rounded-lg transition-all transform active:scale-95">
+                    START FULL SCAN
+                </button>
+            </div>
+        </div>
 
-    <p><strong>محرم الحرام</strong> اسلامی سال کا پہلا مہینہ ہے جسے اللہ تعالیٰ نے حرمت والا مہینہ قرار دیا ہے۔ اس مہینے کی سب سے اہم تاریخ <strong>۱۰ محرم</strong> یعنی <strong>یوم عاشوراء</strong> ہے۔ اسی دن عظیم قربانی اور صبر کی وہ داستان رقم ہوئی جسے تاریخ انسانیت میں سنہری حروف میں لکھا گیا – یہ واقعہ <strong>کربلا</strong> کا ہے۔</p>
+        <div id="progressArea" class="hidden mb-8">
+            <div class="flex justify-between mb-2 text-xs text-gray-400">
+                <span id="progressText">Analyzing Market...</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="w-full bg-gray-800 rounded-full h-1.5">
+                <div id="progressBar" class="bg-yellow-500 h-1.5 rounded-full loader-bar" style="width: 0%"></div>
+            </div>
+        </div>
 
-    <h2>واقعہ کربلا کا پس منظر</h2>
-    <p>حضرت امام حسین علیہ السلام رسول اللہ ﷺ کے پیارے نواسے تھے۔ آپؑ نے دین کی اصل روح اور حق کی سربلندی کے لیے ظالم حکمران یزید کی بیعت قبول نہ کی۔ امام حسینؑ نے فرمایا:</p>
-    <p><em>’’میرے جیسا شخص تم جیسے کی بیعت نہیں کرسکتا۔‘‘</em></p>
-    <p>آپؑ نے دین کی بقا اور ظلم کے خلاف جدوجہد کا فیصلہ کیا اور اپنے خاندان اور رفقاء کے ساتھ <strong>کربلا</strong> کی سرزمین پر قیام فرمایا۔ ۱۰ محرم ۶۱ ہجری کو ظالم لشکر نے نہ صرف پانی بند کردیا بلکہ بھوکے پیاسے خاندانِ رسالت کو بے دردی سے شہید کردیا۔ امام حسینؑ، ان کے بھائی حضرت عباسؑ، ان کے جوان بیٹے علی اکبرؑ اور کئی جانثار ساتھیوں نے اسلام کی سربلندی کی خاطر اپنی جانوں کا نذرانہ پیش کیا۔</p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
+                    <h2 class="text-xl font-bold">Top Fundamental Coins</h2>
+                </div>
+                <div class="card overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-900/50 text-gray-400 uppercase text-xs">
+                            <tr>
+                                <th class="p-4">Pair</th>
+                                <th class="p-4">3D ADR</th>
+                                <th class="p-4">5D ADR</th>
+                                <th class="p-4">Y. Range</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fundamentalBody">
+                            <tr><td colspan="4" class="p-10 text-center text-gray-500">Run scan to load data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <h2>۱۰ محرم کی فضیلت</h2>
-    <p>یوم عاشوراء کو نبی اکرم ﷺ بھی بڑی عظمت سے مناتے تھے۔ آپ ﷺ نے اس دن روزہ رکھنے کی فضیلت بیان فرمائی:</p>
-    <p><em>’’عاشوراء کا روزہ گذشتہ ایک سال کے گناہوں کا کفارہ بن جاتا ہے۔‘‘</em></p>
-    <p>اور فرمایا:</p>
-    <p><em>’’اگر میں آئندہ سال زندہ رہا تو ۹ اور ۱۰ محرم دونوں کا روزہ رکھوں گا۔‘‘</em></p>
-
-    <h2>یوم عاشوراء کی مستحب عبادات</h2>
-    <ul>
-      <li><strong>روزہ رکھنا:</strong> ۹ اور ۱۰ محرم کا روزہ افضل ہے۔</li>
-      <li><strong>صدقہ و خیرات کرنا:</strong> اس دن صدقہ دینے کی بہت فضیلت ہے۔</li>
-      <li><strong>گھر والوں پر وسعت کرنا:</strong> پورے سال کی برکت کا سبب ہے۔</li>
-      <li><strong>ذکر الٰہی:</strong> کثرت سے تسبیحات، استغفار اور درود شریف پڑھنا۔</li>
-      <li><strong>غمِ حسینؑ میں آنسو بہانا:</strong> اہل بیتؑ کی محبت اور ان پر آنے والی مصیبتوں کو یاد کرنا۔</li>
-    </ul>
-
-    <h2>اس دن کی مسنون دعائیں</h2>
-
-    <div class="dua">
-      <strong>عاشوراء کی دعا:</strong><br/>
-      اللّٰهُمَّ اِنِّى اَسْئَلُكَ يَا اَللّٰهُ يَا رَحْمٰنُ يَا رَحِيمُ يَا حَكِيمُ يَا قَدِيْمُ يَا مُقِيمُ يَا عَظِيْمُ يَا عَظِيمُ يَا عَلِيمُ يَا عَلِيمُ اَنْ تَغْفِرَلِىَ الذُّنُوْبَ الَّتِىْ تَحْبِسُ الدُّعَاءَ وَتُنْزِلُ الْبَلاَءَ وَتَمْنَعُ الرِّزْقَ
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-2 h-6 bg-purple-500 rounded-full"></span>
+                    <h2 class="text-xl font-bold">Top Alts & Memes</h2>
+                </div>
+                <div class="card overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-900/50 text-gray-400 uppercase text-xs">
+                            <tr>
+                                <th class="p-4">Pair</th>
+                                <th class="p-4">3D ADR</th>
+                                <th class="p-4">5D ADR</th>
+                                <th class="p-4">Y. Range</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memeBody">
+                            <tr><td colspan="4" class="p-10 text-center text-gray-500">Run scan to load data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="dua">
-      یا اللہ! امام حسینؑ اور ان کے اہل بیتؑ پر ہونے والے ظلم کی عظمت کی قسم، ہمیں ان کی محبت اور ان کے نقشِ قدم پر چلنے کی توفیق عطا فرما۔ آمین۔
-    </div>
+    <script>
+        // Pre-defined categorization logic
+        const fundamentalList = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'UNIUSDT', 'LTCUSDT', 'BCHUSDT', 'NEARUSDT', 'ATOMUSDT', 'APTUSDT', 'ARBUSDT', 'OPUSDT', 'SUIUSDT'];
+        
+        // Helper: Calculate EMA
+        function calculateEMA(data, period) {
+            let k = 2 / (period + 1);
+            let ema = data[0];
+            for (let i = 1; i < data.length; i++) {
+                ema = (data[i] * k) + (ema * (1 - k));
+            }
+            return ema;
+        }
 
-    <div class="dua">
-      <strong>استغفار اور درود شریف:</strong><br/>
-      اَسْتَغْفِرُ اللّٰہَ رَبِّىْ مِنْ كُلِّ ذَنْبٍ وَّ اَتُوْبُ اِلَيْهِ<br/>
-      اَللّٰہُمَّ صَلِّ عَلٰی مُحَمَّدٍ وَّ آلِ مُحَمَّدٍ
-    </div>
+        async function runGlobalScan() {
+            const btn = document.getElementById('scanBtn');
+            const targetBias = document.getElementById('biasSelect').value;
+            const fBody = document.getElementById('fundamentalBody');
+            const mBody = document.getElementById('memeBody');
+            const progArea = document.getElementById('progressArea');
+            const progBar = document.getElementById('progressBar');
+            
+            btn.disabled = true;
+            progArea.classList.remove('hidden');
+            fBody.innerHTML = '';
+            mBody.innerHTML = '';
 
-    <h2>یوم عاشوراء سے ہمیں کیا سیکھنا چاہیے؟</h2>
-    <p>واقعۂ کربلا ہمیں عظیم اسباق دیتا ہے:</p>
-    <ul>
-      <li>حق کی خاطر قربانی دینے کا جذبہ۔</li>
-      <li>ظلم کے آگے سر نہ جھکانا۔</li>
-      <li>صبر، استقامت اور توکل علی اللہ۔</li>
-      <li>اہل بیت کی محبت کو دلوں میں بسانا۔</li>
-    </ul>
+            try {
+                // 1. Get all Futures Symbols from Binance
+                const exchangeInfo = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo').then(r => r.json());
+                const symbols = exchangeInfo.symbols
+                    .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
+                    .map(s => s.symbol);
 
-    <p>حضرت امام حسینؑ نے فرمایا:</p>
-    <p><em>’’موت میں عزت ہے، زندگی میں ذلت قبول نہیں۔‘‘</em></p>
-    <p>اسی لیے آج بھی کربلا کی صدا گونجتی ہے:</p>
-    <p><strong>’’کربلا والوں کا پیغام قیامت تک باقی رہے گا۔‘‘</strong></p>
+                const total = symbols.length;
+                
+                for (let i = 0; i < total; i++) {
+                    const symbol = symbols[i];
+                    
+                    // Update Progress
+                    const pct = Math.round(((i + 1) / total) * 100);
+                    progBar.style.width = pct + '%';
+                    document.getElementById('progressPercent').innerText = pct + '%';
+                    document.getElementById('progressText').innerText = `Analyzing ${symbol}...`;
 
-    <!-- Ad Block Start (Moved to Bottom) -->
-    <div class="ad-container">
-      <script type="text/javascript">
-        atOptions = {
-          'key' : '7dd1aee0359ee21475c15278755b2726',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script type="text/javascript" src="//www.highperformanceformat.com/7dd1aee0359ee21475c15278755b2726/invoke.js"></script>
-    </div>
-    <!-- Ad Block End -->
-  </div>
+                    // 2. Fetch Daily Data
+                    const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1d&limit=15`).then(r => r.json());
+                    if (klines.length < 10) continue;
+
+                    const closes = klines.map(k => parseFloat(k[4]));
+                    const highs = klines.map(k => parseFloat(k[2]));
+                    const lows = klines.map(k => parseFloat(k[3]));
+
+                    // EMA Bias Logic (Pine Script: dailyEMA9 > dailyEMA9[2])
+                    const emaNow = calculateEMA(closes, 9);
+                    const emaOld = calculateEMA(closes.slice(0, -2), 9);
+                    const currentBias = emaNow > emaOld ? 'Bullish' : 'Bearish';
+
+                    if (currentBias !== targetBias) continue;
+
+                    // ADR Logic (Pine Script: yesterdayRange > adr3/5 ? "Break" : "Not")
+                    const yHigh = highs[highs.length - 2];
+                    const yLow = lows[lows.length - 2];
+                    const yRange = yHigh - yLow;
+
+                    const ranges = [];
+                    for(let j=3; j<8; j++) {
+                        ranges.push(highs[highs.length - j] - lows[lows.length - j]);
+                    }
+
+                    const adr3 = (ranges[0] + ranges[1] + ranges[2]) / 3;
+                    const adr5 = (ranges[0] + ranges[1] + ranges[2] + ranges[3] + ranges[4]) / 5;
+
+                    // Condition: ADR MUST NOT BE BROKEN (Yesterday range <= ADR)
+                    if (yRange <= adr3 && yRange <= adr5) {
+                        const row = `
+                            <tr class="border-b border-gray-800 hover:bg-gray-800/40 transition">
+                                <td class="p-4 font-bold text-white">${symbol.replace('USDT', '')}<span class="text-gray-500 text-[10px] ml-1">USDT</span></td>
+                                <td class="p-4"><span class="px-2 py-1 rounded badge-ok text-[10px]">NO BREAK</span></td>
+                                <td class="p-4"><span class="px-2 py-1 rounded badge-ok text-[10px]">NO BREAK</span></td>
+                                <td class="p-4 font-mono text-gray-400">${yRange.toFixed(yRange < 1 ? 5 : 2)}</td>
+                            </tr>
+                        `;
+
+                        if (fundamentalList.includes(symbol)) {
+                            fBody.innerHTML += row;
+                        } else {
+                            mBody.innerHTML += row;
+                        }
+                    }
+                }
+
+                if (fBody.innerHTML === '') fBody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-500">No matches found.</td></tr>';
+                if (mBody.innerHTML === '') mBody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-500">No matches found.</td></tr>';
+
+            } catch (err) {
+                console.error(err);
+                alert("Error fetching market data. Please try again.");
+            }
+
+            btn.disabled = false;
+            progArea.classList.add('hidden');
+        }
+    </script>
 </body>
 </html>
