@@ -3,164 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT Bias Bot - Diagnostic Version</title>
+    <title>Gemini Image Explorer</title>
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --text: #c9d1d9; --accent: #238636; --error: #f85149; --warning: #d29922; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; }
-        .container { max-width: 800px; width: 100%; background: var(--card); border: 1px solid #30363d; padding: 25px; border-radius: 10px; }
-        h2 { color: #58a6ff; margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
-        .input-box { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-size: 14px; color: #8b949e; }
-        input { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:disabled { background: #23422a; color: #8b949e; cursor: not-allowed; }
-        
-        /* Error Messaging */
-        #output { margin-top: 20px; padding: 15px; border-radius: 6px; background: #0d1117; border: 1px solid #30363d; min-height: 100px; line-height: 1.6; }
-        .error-alert { border-left: 4px solid var(--error); background: rgba(248, 81, 73, 0.1) !important; color: #ff7b72; padding: 15px; margin-top: 10px; }
-        .warning-alert { border-left: 4px solid var(--warning); background: rgba(210, 153, 34, 0.1) !important; color: #e3b341; padding: 15px; margin-top: 10px; }
-        .loading-text { color: #58a6ff; font-weight: bold; animation: blink 1.5s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        :root {
+            --primary: #4285f4;
+            --bg: #f8f9fa;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h2 { color: #333; margin-top: 0; }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #preview {
+            max-width: 100%;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f3f4;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .loading { color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>ICT Bias Bot <small style="font-size: 12px; color: #8b949e;">v2.1 (Error Handling)</small></h2>
+    <h2>Gemini Image Describer</h2>
     
-    <div class="input-box">
-        <label>Gemini API Key</label>
-        <input type="password" id="apiKey" placeholder="Enter your key from Google AI Studio">
-    </div>
-
-    <div class="input-box">
-        <label>Upload Charts (1D, 1W, 1M Screenshots)</label>
-        <input type="file" id="chartFiles" multiple accept="image/*">
-    </div>
-
-    <button id="scanBtn">Analyze Daily Bias</button>
-
-    <div id="output">Waiting for input...</div>
+    <label for="apiKey">1. Enter Gemini API Key:</label>
+    <input type="password" id="apiKey" placeholder="AIzaSy...">
+    
+    <label for="imageInput">2. Upload Image:</label>
+    <input type="file" id="imageInput" accept="image/*">
+    
+    <img id="preview" alt="Preview">
+    
+    <button id="analyzeBtn">Analyze Image</button>
+    
+    <div id="output">Result will appear here...</div>
 </div>
 
 <script type="importmap">
-{
-  "imports": {
-    "@google/generative-ai": "https://esm.run/@google/generative-ai"
+  {
+    "imports": {
+      "@google/generative-ai": "https://esm.run/@google/generative-ai"
+    }
   }
-}
 </script>
 
 <script type="module">
     import { GoogleGenerativeAI } from "@google/generative-ai";
 
-    const scanBtn = document.getElementById('scanBtn');
+    const imageInput = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
+    const analyzeBtn = document.getElementById('analyzeBtn');
     const output = document.getElementById('output');
+    const apiKeyInput = document.getElementById('apiKey');
 
-    scanBtn.addEventListener('click', async () => {
-        const key = document.getElementById('apiKey').value.trim();
-        const files = document.getElementById('chartFiles').files;
-
-        // 1. Basic Validation Errors
-        if (!key) {
-            showError("API Key Missing", "Please enter your Gemini API key. You can get one for free at aistudio.google.com.");
-            return;
-        }
-        if (files.length === 0) {
-            showError("No Images Found", "Please upload at least one chart screenshot (Daily, Weekly, or Monthly).");
-            return;
-        }
-
-        setLoading(true);
-
-        try {
-            const genAI = new GoogleGenerativeAI(key);
-            // Use gemini-1.5-flash for maximum speed and compatibility
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-            const imageParts = await Promise.all(
-                Array.from(files).map(fileToGenerativePart)
-            );
-
-            const prompt = `
-                Perform a professional ICT Technical Analysis on the attached charts.
-                Focus on these 3 Daily Bias Filters:
-                1. DAILY TF FVGS: Identify immediate Fair Value Gaps price is heading towards.
-                2. IRL TO ERL: Is price moving from internal liquidity (FVG) to external (Old High/Low)?
-                3. ICT DAILY CANDLE CLOSING: Compare the most recent 1D candle close to previous 1D High/Low.
-                
-                Provide the FINAL PRESENT DAY BIAS clearly at the end.
-            `;
-
-            const result = await model.generateContent([prompt, ...imageParts]);
-            const response = await result.response;
-            const text = response.text();
-
-            output.innerHTML = `<div style="white-space: pre-wrap;">${text}</div>`;
-            output.className = "";
-
-        } catch (err) {
-            handleApiError(err);
-        } finally {
-            setLoading(false);
+    // Show preview of the uploaded image
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                preview.src = f.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
         }
     });
 
-    function handleApiError(err) {
-        console.error("Full Error Object:", err);
-        let title = "API Error";
-        let msg = err.message;
-
-        if (msg.includes("API_KEY_INVALID")) {
-            title = "Invalid API Key";
-            msg = "The key you entered is not recognized. Check for extra spaces or typos.";
-        } else if (msg.includes("429")) {
-            title = "Quota Exceeded";
-            msg = "You are sending requests too fast for the free tier. Wait 60 seconds and try again.";
-        } else if (msg.includes("fetch")) {
-            title = "Connection Error";
-            msg = "Could not connect to Google servers. Check your internet or Disable VPN/Ad-blockers.";
-        } else if (msg.includes("safety")) {
-            title = "Content Blocked";
-            msg = "The AI safety filter blocked this analysis. Try a clearer chart screenshot.";
-        }
-
-        showError(title, msg);
-    }
-
-    function showError(title, message) {
-        output.innerHTML = `
-            <div class="error-alert">
-                <strong>⚠️ ${title}</strong><br>
-                ${message}
-            </div>
-        `;
-    }
-
-    function setLoading(isLoading) {
-        if (isLoading) {
-            scanBtn.disabled = true;
-            output.innerHTML = '<span class="loading-text">Scanning ICT Data... Please hold.</span>';
-        } else {
-            scanBtn.disabled = false;
-        }
-    }
-
+    // Convert file to Base64 for the API
     async function fileToGenerativePart(file) {
-        return new Promise((resolve, reject) => {
+        const base64EncodedDataPromise = new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                resolve({
-                    inlineData: {
-                        data: reader.result.split(',')[1],
-                        mimeType: file.type
-                    },
-                });
-            };
-            reader.onerror = reject;
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
             reader.readAsDataURL(file);
         });
+        return {
+            inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
+        };
     }
+
+    analyzeBtn.addEventListener('click', async () => {
+        const key = apiKeyInput.value.trim();
+        const file = imageInput.files[0];
+
+        if (!key) return alert("Please enter your API Key");
+        if (!file) return alert("Please upload an image first");
+
+        try {
+            analyzeBtn.disabled = true;
+            output.innerHTML = '<span class="loading">Analyzing... Please wait.</span>';
+
+            const genAI = new GoogleGenerativeAI(key);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            const imagePart = await fileToGenerativePart(file);
+            const prompt = "Describe what is happening in this image in detail.";
+
+            const result = await model.generateContent([prompt, imagePart]);
+            const response = await result.response;
+            output.innerText = response.text();
+
+        } catch (error) {
+            output.innerText = "Error: " + error.message;
+        } finally {
+            analyzeBtn.disabled = false;
+        }
+    });
 </script>
 
 </body>
