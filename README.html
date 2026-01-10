@@ -76,7 +76,15 @@ scanBtn.addEventListener('click', async () => {
             body: JSON.stringify({
                 contents: [{
                     parts: [
-                        { text: "What is in this image? Provide a concise description." },
+                        { text: "Act as a professional ICT (Inner Circle Trader) analyst. Please analyze the attached 1D (Daily) chart and determine the Daily Bias for the next trading session based on the following three filters.
+1. DAILY TF FVGs: Identify the most recent Fair Value Gaps. Is price currently reacting off a bullish FVG (discount) or a bearish FVG (premium)? Is there an unfilled FVG acting as a magnet?
+2. IRL TO ERL AND ERL TO IRL: Identify the current Narrative. Is price moving from Internal Range Liquidity (FVGs/Balanced Price Ranges) toward External Range Liquidity (Old Highs/Lows), or has it just swept External Liquidity and is now gravitating back to an Internal Fair Value Gap?
+3. ICT DAILY CANDLE CLOSING CONCEPT: Look at the most recent completed 1D candle. If it closed above the high of the previous candle, the bias is bullish. If it closed below the low of the previous candle, the bias is bearish.
+Please provide the output in this exact format:
+FVG FILTER: [Analyze if price is supported by/rejected by a Daily FVG and identify the next FVG draw on liquidity]
+IRL & ERL FILTER: [State whether price is currently in an IRL-to-ERL expansion or an ERL-to-IRL retracement]
+CANDLE CLOSING FILTER: [Note the close of the previous candle relative to the prior candle's range]
+FINAL BIAS: [Bullish / Bearish / Neutral]" },
                         { inline_data: { mime_type: file.type, data: base64Data } }
                     ]
                 }]
