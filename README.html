@@ -3,202 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ICT Advanced Futures Scanner</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>ICT Daily Bias Bot</title>
     <style>
-        body { background-color: #0b0e11; color: #eaecef; font-family: 'Inter', sans-serif; }
-        .card { background: #1e2329; border: 1px solid #363c4e; border-radius: 12px; }
-        .bullish { color: #02c076; }
-        .bearish { color: #f84960; }
-        .badge-ok { background: #02c07622; color: #02c076; border: 1px solid #02c07644; }
-        .loader-bar { transition: width 0.3s ease; }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 800px; background: var(--card); padding: 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); }
+        h1 { color: var(--accent); margin-top: 0; }
+        .input-group { margin-bottom: 20px; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        button { background: var(--accent); color: #0f172a; border: none; padding: 12px 24px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { opacity: 0.9; }
+        #output { margin-top: 25px; padding: 20px; background: #0f172a; border-left: 4px solid var(--accent); white-space: pre-wrap; line-height: 1.6; }
+        .loader { display: none; color: var(--accent); text-align: center; margin: 10px 0; }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <div>
-                <h1 class="text-3xl font-extrabold text-yellow-400 tracking-tight">ICT <span class="text-white">FUTURES SCANNER</span></h1>
-                <p class="text-gray-400 text-sm">Scanning ADR Consolidation & Daily Bias</p>
-            </div>
-            
-            <div class="flex flex-wrap gap-3 items-end">
-                <div class="flex flex-col">
-                    <label class="text-xs text-gray-500 mb-1 ml-1">REQUIRED BIAS</label>
-                    <select id="biasSelect" class="bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 outline-none focus:border-yellow-500">
-                        <option value="Bullish">Bullish (EMA9 Up)</option>
-                        <option value="Bearish">Bearish (EMA9 Down)</option>
-                    </select>
-                </div>
-                <button onclick="runGlobalScan()" id="scanBtn" class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-8 py-2 rounded-lg transition-all transform active:scale-95">
-                    START FULL SCAN
-                </button>
-            </div>
-        </div>
+<body>
 
-        <div id="progressArea" class="hidden mb-8">
-            <div class="flex justify-between mb-2 text-xs text-gray-400">
-                <span id="progressText">Analyzing Market...</span>
-                <span id="progressPercent">0%</span>
-            </div>
-            <div class="w-full bg-gray-800 rounded-full h-1.5">
-                <div id="progressBar" class="bg-yellow-500 h-1.5 rounded-full loader-bar" style="width: 0%"></div>
-            </div>
-        </div>
+<div class="container">
+    <h1>ICT Daily Bias Scanner</h1>
+    <p>Upload 1D, 1W, and 1M chart screenshots to determine present day bias.</p>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div>
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="w-2 h-6 bg-blue-500 rounded-full"></span>
-                    <h2 class="text-xl font-bold">Top Fundamental Coins</h2>
-                </div>
-                <div class="card overflow-hidden">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-900/50 text-gray-400 uppercase text-xs">
-                            <tr>
-                                <th class="p-4">Pair</th>
-                                <th class="p-4">3D ADR</th>
-                                <th class="p-4">5D ADR</th>
-                                <th class="p-4">Y. Range</th>
-                            </tr>
-                        </thead>
-                        <tbody id="fundamentalBody">
-                            <tr><td colspan="4" class="p-10 text-center text-gray-500">Run scan to load data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div>
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="w-2 h-6 bg-purple-500 rounded-full"></span>
-                    <h2 class="text-xl font-bold">Top Alts & Memes</h2>
-                </div>
-                <div class="card overflow-hidden">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-900/50 text-gray-400 uppercase text-xs">
-                            <tr>
-                                <th class="p-4">Pair</th>
-                                <th class="p-4">3D ADR</th>
-                                <th class="p-4">5D ADR</th>
-                                <th class="p-4">Y. Range</th>
-                            </tr>
-                        </thead>
-                        <tbody id="memeBody">
-                            <tr><td colspan="4" class="p-10 text-center text-gray-500">Run scan to load data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+    <div class="input-group">
+        <label>Gemini API Key</label>
+        <input type="text" id="apiKey" placeholder="Paste your API key here...">
     </div>
 
-    <script>
-        // Pre-defined categorization logic
-        const fundamentalList = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'UNIUSDT', 'LTCUSDT', 'BCHUSDT', 'NEARUSDT', 'ATOMUSDT', 'APTUSDT', 'ARBUSDT', 'OPUSDT', 'SUIUSDT'];
-        
-        // Helper: Calculate EMA
-        function calculateEMA(data, period) {
-            let k = 2 / (period + 1);
-            let ema = data[0];
-            for (let i = 1; i < data.length; i++) {
-                ema = (data[i] * k) + (ema * (1 - k));
-            }
-            return ema;
+    <div class="input-group">
+        <label>Upload Charts (Select 3: 1D, 1W, 1M)</label>
+        <input type="file" id="imageInput" multiple accept="image/*">
+    </div>
+
+    <button onclick="analyzeBias()">Scan Daily Bias</button>
+    <div id="loader" class="loader">Analyzing charts with Gemini AI... (This may take 10-20 seconds)</div>
+    <div id="output">Analysis will appear here...</div>
+</div>
+
+<script type="module">
+    import { GoogleGenerativeAI } from "https://esm.run/@google/genai";
+
+    window.analyzeBias = async () => {
+        const key = document.getElementById('apiKey').value;
+        const files = document.getElementById('imageInput').files;
+        const output = document.getElementById('output');
+        const loader = document.getElementById('loader');
+
+        if (!key || files.length === 0) {
+            alert("Please provide an API key and upload images.");
+            return;
         }
 
-        async function runGlobalScan() {
-            const btn = document.getElementById('scanBtn');
-            const targetBias = document.getElementById('biasSelect').value;
-            const fBody = document.getElementById('fundamentalBody');
-            const mBody = document.getElementById('memeBody');
-            const progArea = document.getElementById('progressArea');
-            const progBar = document.getElementById('progressBar');
-            
-            btn.disabled = true;
-            progArea.classList.remove('hidden');
-            fBody.innerHTML = '';
-            mBody.innerHTML = '';
+        loader.style.display = "block";
+        output.innerText = "";
 
-            try {
-                // 1. Get all Futures Symbols from Binance
-                const exchangeInfo = await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo').then(r => r.json());
-                const symbols = exchangeInfo.symbols
-                    .filter(s => s.quoteAsset === 'USDT' && s.status === 'TRADING')
-                    .map(s => s.symbol);
+        try {
+            const genAI = new GoogleGenerativeAI(key);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-                const total = symbols.length;
-                
-                for (let i = 0; i < total; i++) {
-                    const symbol = symbols[i];
-                    
-                    // Update Progress
-                    const pct = Math.round(((i + 1) / total) * 100);
-                    progBar.style.width = pct + '%';
-                    document.getElementById('progressPercent').innerText = pct + '%';
-                    document.getElementById('progressText').innerText = `Analyzing ${symbol}...`;
+            // Convert images to Base64
+            const imageParts = await Promise.all([...files].map(fileToGenerativePart));
 
-                    // 2. Fetch Daily Data
-                    const klines = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=1d&limit=15`).then(r => r.json());
-                    if (klines.length < 10) continue;
+            const prompt = `
+                You are a senior ICT (Inner Circle Trader) technical analyst. 
+                Analyze these three charts (1D, 1W, 1M timeframes) and determine the DAILY BIAS using these 3 filters:
 
-                    const closes = klines.map(k => parseFloat(k[4]));
-                    const highs = klines.map(k => parseFloat(k[2]));
-                    const lows = klines.map(k => parseFloat(k[3]));
+                1. **DAILY TF FVGS**: Identify if price is reacting to a Bullish or Bearish Fair Value Gap on the Daily chart.
+                2. **IRL TO ERL / ERL TO IRL**: Determine if price is moving from Internal Range Liquidity (FVGs/Imbalances) toward External Range Liquidity (Old Highs/Lows) or vice versa.
+                3. **ICT DAILY CANDLE CLOSING CONCEPT**: Look at the most recent closed 1D candle. If it closed above the previous candle's high, bias is bullish. If below the previous candle's low, it's bearish.
 
-                    // EMA Bias Logic (Pine Script: dailyEMA9 > dailyEMA9[2])
-                    const emaNow = calculateEMA(closes, 9);
-                    const emaOld = calculateEMA(closes.slice(0, -2), 9);
-                    const currentBias = emaNow > emaOld ? 'Bullish' : 'Bearish';
+                Structure your response:
+                - ANALYSIS PER FILTER (FVG, IRL/ERL, Candle Closing)
+                - CONFLUENCE SUMMARY
+                - FINAL PRESENT DAY BIAS (Bullish, Bearish, or Neutral)
+            `;
 
-                    if (currentBias !== targetBias) continue;
-
-                    // ADR Logic (Pine Script: yesterdayRange > adr3/5 ? "Break" : "Not")
-                    const yHigh = highs[highs.length - 2];
-                    const yLow = lows[lows.length - 2];
-                    const yRange = yHigh - yLow;
-
-                    const ranges = [];
-                    for(let j=3; j<8; j++) {
-                        ranges.push(highs[highs.length - j] - lows[lows.length - j]);
-                    }
-
-                    const adr3 = (ranges[0] + ranges[1] + ranges[2]) / 3;
-                    const adr5 = (ranges[0] + ranges[1] + ranges[2] + ranges[3] + ranges[4]) / 5;
-
-                    // Condition: ADR MUST NOT BE BROKEN (Yesterday range <= ADR)
-                    if (yRange <= adr3 && yRange <= adr5) {
-                        const row = `
-                            <tr class="border-b border-gray-800 hover:bg-gray-800/40 transition">
-                                <td class="p-4 font-bold text-white">${symbol.replace('USDT', '')}<span class="text-gray-500 text-[10px] ml-1">USDT</span></td>
-                                <td class="p-4"><span class="px-2 py-1 rounded badge-ok text-[10px]">NO BREAK</span></td>
-                                <td class="p-4"><span class="px-2 py-1 rounded badge-ok text-[10px]">NO BREAK</span></td>
-                                <td class="p-4 font-mono text-gray-400">${yRange.toFixed(yRange < 1 ? 5 : 2)}</td>
-                            </tr>
-                        `;
-
-                        if (fundamentalList.includes(symbol)) {
-                            fBody.innerHTML += row;
-                        } else {
-                            mBody.innerHTML += row;
-                        }
-                    }
-                }
-
-                if (fBody.innerHTML === '') fBody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-500">No matches found.</td></tr>';
-                if (mBody.innerHTML === '') mBody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-500">No matches found.</td></tr>';
-
-            } catch (err) {
-                console.error(err);
-                alert("Error fetching market data. Please try again.");
-            }
-
-            btn.disabled = false;
-            progArea.classList.add('hidden');
+            const result = await model.generateContent([prompt, ...imageParts]);
+            const response = await result.response;
+            output.innerText = response.text();
+        } catch (error) {
+            output.innerText = "Error: " + error.message;
+        } finally {
+            loader.style.display = "none";
         }
-    </script>
+    };
+
+    async function fileToGenerativePart(file) {
+        const base64EncodedDataPromise = new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.readAsDataURL(file);
+        });
+        return {
+            inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
+        };
+    }
+</script>
+
 </body>
 </html>
