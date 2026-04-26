@@ -5,6 +5,10 @@
     <title>VisionAI | Personal Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@latest/dist/browser/umd/2x.min.js"></script>
+
     <style>
         body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.1); }
@@ -16,7 +20,7 @@
     <div class="glass w-full max-w-4xl rounded-[2.5rem] p-10 accent-glow">
         <div class="flex justify-between items-center mb-10">
             <h1 class="text-2xl font-black tracking-tighter">VISION<span class="text-blue-500">AI</span></h1>
-            <div class="text-[10px] text-slate-500 font-mono bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
+            <div id="status-tag" class="text-[10px] text-slate-500 font-mono bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
                 STATUS: READY
             </div>
         </div>
@@ -29,34 +33,35 @@
                     <p id="file-name" class="text-slate-500 text-sm">Select Image</p>
                 </div>
 
-                <button id="enhance-btn" class="w-full py-5 bg-blue-600 rounded-2xl font-bold tracking-widest btn-glow transition-all active:scale-95">
-                    ENHANCE TO 4K
+                <button id="enhance-btn" class="w-full py-5 bg-blue-600 rounded-2xl font-bold tracking-widest btn-glow transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    ENHANCE (LOCAL AI)
                 </button>
             </div>
 
             <div class="bg-black/60 rounded-3xl border border-slate-800 flex items-center justify-center relative min-h-[350px] overflow-hidden">
                 <div id="preview-idle" class="text-slate-800 text-center">
-                    <i class="fa-solid fa- image text-6xl mb-2"></i>
+                    <i class="fa-solid fa-image text-6xl mb-2"></i>
                     <p class="text-xs font-bold uppercase">No Output</p>
                 </div>
 
                 <div id="preview-loading" class="hidden text-center">
                     <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p class="text-blue-500 text-[10px] font-bold">UPLOADING & PROCESSING...</p>
+                    <p id="loading-text" class="text-blue-500 text-[10px] font-bold">BOOTING AI ENGINE...</p>
                 </div>
 
-                <img id="preview-img" src="" class="hidden w-full h-full object-contain">
-                <a id="dl-link" href="#" download class="hidden absolute bottom-4 right-4 bg-white text-black p-3 rounded-full shadow-xl"><i class="fa-solid fa-download"></i></a>
+                <img id="preview-img" src="" class="hidden w-full h-full object-contain p-2">
+                <a id="dl-link" href="#" download="enhanced-vision-ai.png" class="hidden absolute bottom-4 right-4 bg-white text-black p-3 rounded-full shadow-xl hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-download"></i>
+                </a>
             </div>
         </div>
     </div>
 
     <script>
-        // Use your ImgBB Key here (Free from api.imgbb.com)
-        const IMGBB_KEY = "19e64baed844a1758ceaa4bbe39abbcd"; 
-        
-        // Re-inserted your original Bearer Token
-        const TOKEN = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ijk3MjFiZTM2LWIyNzAtNDlkNS05NzU2LTlkNTk3Yzg2YjA1MSJ9.eyJzdWIiOiJhdXRoLXNlcnZpY2Utd2ViIiwiYXVkIjoiYXV0aC1zZXJ2aWNlLXdlYiIsIm5iZiI6MTY4NzQyOTgyOCwic2NvcGUiOltdLCJpYXQiOjE2ODc0NDA2MjgsImlzcyI6Imh0dHBzOi8vcGEtYXV0aG9yaXphdGlvbi1zZXJ2ZXIuc3RhZ2UucGljc2FydC50b29scy9hcGkvb2F1dGgyIiwianRpIjoiYjRkYzU1MzAtYzEzOC00MzBmLWFiNjUtYTMyNDZlYmMwNWU3In0.UpUJB5QBuQKekvSWcBiA_lH0YdB6wKGXu2VscIK3hNYfzCDvvu-jKF7hnVgbX-REE1fAO3CY68eKBthJU1cC48UqLmQHQk8imPIUdPfARRXnH_6y2Qc7FgP3-Go2hLPwTxPXcTX0_AvAt6nviLPnvbfhKrqB6bCp6W4nmVWakrE-PLCJtZ-KuCa5-b6MIsRz_tqNeDXP-TLZhjjdfjIk0hrqr86WIQOH2MsrwLibSpJyKBhNDh314T7fsV4pHx3uQj_NhchsDBATf6vF0x74VjHO1Y6r5XSi6zgBEm-zfdqPOVitC-J-nnQNlOwAEmgFL_Ho49mkgWKjFKmXvm4bFw";
+        // Initialize the local Upscaler engine
+        const upscaler = new Upscaler({
+            model: window['esrgan-slim']['2x'] 
+        });
 
         const fileInput = document.getElementById('file-input');
         const enhanceBtn = document.getElementById('enhance-btn');
@@ -64,50 +69,54 @@
         const loading = document.getElementById('preview-loading');
         const idle = document.getElementById('preview-idle');
         const dlLink = document.getElementById('dl-link');
+        const statusTag = document.getElementById('status-tag');
 
         let selectedFile = null;
 
         document.getElementById('drop-zone').onclick = () => fileInput.click();
+
         fileInput.onchange = (e) => {
             selectedFile = e.target.files[0];
-            if(selectedFile) document.getElementById('file-name').innerText = selectedFile.name;
+            if(selectedFile) {
+                document.getElementById('file-name').innerText = selectedFile.name;
+                // Show original as preview immediately
+                const reader = new FileReader();
+                reader.onload = (re) => {
+                    previewImg.src = re.target.result;
+                    previewImg.classList.remove('hidden');
+                    idle.classList.add('hidden');
+                }
+                reader.readAsDataURL(selectedFile);
+            }
         };
 
         enhanceBtn.onclick = async () => {
             if(!selectedFile) return alert("Upload an image first.");
             
-            idle.classList.add('hidden');
-            previewImg.classList.add('hidden');
+            enhanceBtn.disabled = true;
             loading.classList.remove('hidden');
+            previewImg.classList.add('opacity-30'); // Dim existing preview
+            statusTag.innerText = "STATUS: PROCESSING";
+            document.getElementById('loading-text').innerText = "AI UPSCALING (LOCAL GPU)...";
 
             try {
-                // 1. Get a URL via ImgBB
-                const fd = new FormData();
-                fd.append("image", selectedFile);
-                const up = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {method: "POST", body: fd});
-                const upData = await up.json();
-                const url = upData.data.url;
-
-                // 2. Enhance via Picsart
-                const res = await fetch(`https://ai.picsart.com/gw1/enhancement/v039/pipeline?picsart_cdn_url=${encodeURIComponent(url)}&format=PNG&model=REALESERGAN`, {
-                    method: 'POST',
-                    headers: { 'x-app-authorization': TOKEN, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        "face_enhancement_0": {"enabled": true},
-                        "upscale_0": {"enabled": true, "target_scale": 4, "units": "pixels"}
-                    })
-                });
-
-                const data = await res.json();
-                previewImg.src = data.data.url;
-                previewImg.classList.remove('hidden');
-                dlLink.href = data.data.url;
+                // Upscale directly using the image source
+                const enhancedImage = await upscaler.upscale(previewImg.src);
+                
+                // Show result
+                previewImg.src = enhancedImage;
+                previewImg.classList.remove('opacity-30', 'hidden');
+                dlLink.href = enhancedImage;
                 dlLink.classList.remove('hidden');
-
+                
+                statusTag.innerText = "STATUS: COMPLETE";
             } catch (err) {
-                alert("Error. Ensure ImgBB key is set and CORS extension is ON.");
+                console.error(err);
+                alert("Processing failed. Your browser might have run out of memory.");
+                statusTag.innerText = "STATUS: ERROR";
             } finally {
                 loading.classList.add('hidden');
+                enhanceBtn.disabled = false;
             }
         };
     </script>
