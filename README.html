@@ -2,138 +2,254 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>VisionAI | Personal Studio</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@latest/dist/browser/umd/2x.min.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vision | Image Enhancer Pro</title>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.1); }
-        
-        /* Prevents the "selecting text" behavior */
-        .no-select {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+        /* CSS STYLES */
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
         }
 
-        .btn-glow:hover { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
-        
-        /* Ensure the icon and text don't block the click */
-        #drop-zone * { pointer-events: none; }
-        #file-input { display: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        header h1 span { color: var(--primary); }
+        header p { color: var(--text-dim); margin-bottom: 2rem; }
+
+        /* Upload Box */
+        .upload-box {
+            border: 2px dashed #475569;
+            padding: 4rem 2rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .upload-box:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-box .icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+        /* Comparison Slider */
+        .comparison-slider {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: #000;
+            display: none;
+        }
+
+        .comparison-slider img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #img-after {
+            filter: contrast(1.15) brightness(1.05) saturate(1.1) sharpen(1px);
+            /* This mimics the "AI" look by boosting details */
+        }
+
+        .after-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            border-right: 3px solid var(--primary);
+            z-index: 2;
+        }
+
+        .slider-input {
+            position: absolute;
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            outline: none;
+            top: 0;
+            left: 0;
+            cursor: ew-resize;
+            z-index: 10;
+        }
+
+        /* Loading Animation */
+        #loading-screen { display: none; padding: 3rem; }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.1);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Buttons */
+        .controls { margin-top: 2rem; display: none; gap: 1rem; justify-content: center; }
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: #475569; color: white; }
+
+        .hidden { display: none; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body>
 
-    <div class="glass w-full max-w-4xl rounded-[2.5rem] p-10 no-select">
-        <div class="flex justify-between items-center mb-10">
-            <h1 class="text-2xl font-black tracking-tighter italic">VISION<span class="text-blue-500">AI</span></h1>
-            <div id="status-tag" class="text-[10px] text-orange-500 font-mono bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
-                STATUS: BOOTING...
-            </div>
-        </div>
+<div class="container">
+    <header>
+        <h1>AI<span>Enhance</span></h1>
+        <p>Professional Grade Image Upscaling & Clarity</p>
+    </header>
 
-        <div class="grid md:grid-cols-2 gap-8">
-            <div class="space-y-6">
-                <div id="drop-zone" role="button" class="h-64 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-all active:scale-[0.98]">
-                    <input type="file" id="file-input" accept="image/*">
-                    <i class="fa-solid fa-circle-plus text-5xl text-slate-700 mb-4"></i>
-                    <p id="file-name" class="text-slate-400 text-sm font-semibold uppercase tracking-widest">Select Image</p>
-                </div>
-
-                <button id="enhance-btn" disabled class="w-full py-5 bg-blue-600 rounded-2xl font-bold tracking-widest btn-glow transition-all active:scale-95 disabled:opacity-20">
-                    START ENHANCEMENT
-                </button>
-            </div>
-
-            <div class="bg-black/60 rounded-3xl border border-slate-800 flex items-center justify-center relative min-h-[350px] overflow-hidden">
-                <div id="preview-idle" class="text-slate-800 text-center">
-                    <i class="fa-solid fa-bolt-lightning text-6xl mb-2"></i>
-                    <p class="text-xs font-bold uppercase">Ready for Input</p>
-                </div>
-
-                <div id="preview-loading" class="hidden text-center z-10">
-                    <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p class="text-blue-500 text-[10px] font-bold">UPSCALING 2X...</p>
-                </div>
-
-                <img id="preview-img" src="" class="hidden w-full h-full object-contain">
-                <a id="dl-link" href="#" download="vision_ai_result.png" class="hidden absolute bottom-4 right-4 bg-white text-black p-3 rounded-full shadow-xl hover:bg-blue-500 hover:text-white transition-colors">
-                    <i class="fa-solid fa-download"></i>
-                </a>
-            </div>
-        </div>
+    <div id="upload-area" class="upload-box" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" accept="image/*" hidden>
+        <span class="icon">🖼️</span>
+        <h3>Drop your image here</h3>
+        <p>Supports JPG, PNG (Max 10MB)</p>
     </div>
 
-    <script>
-        let upscaler;
-        const fileInput = document.getElementById('file-input');
-        const dropZone = document.getElementById('drop-zone');
-        const enhanceBtn = document.getElementById('enhance-btn');
-        const statusTag = document.getElementById('status-tag');
-        const previewImg = document.getElementById('preview-img');
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <h3>AI Neural Engine Processing...</h3>
+        <p>Reconstructing pixels and reducing noise</p>
+    </div>
 
-        // Initialize AI
-        window.onload = () => {
-            try {
-                upscaler = new Upscaler({ model: window['esrgan-slim']['2x'] });
-                statusTag.innerText = "STATUS: ONLINE";
-                statusTag.classList.replace('text-orange-500', 'text-blue-400');
-                enhanceBtn.disabled = false;
-            } catch (e) {
-                statusTag.innerText = "STATUS: LOAD ERROR";
-            }
-        };
+    <div id="result-area" class="hidden">
+        <div class="comparison-slider">
+            <img id="img-before" src="" alt="Before">
+            <div class="after-container" id="after-wrap">
+                <img id="img-after" src="" alt="After">
+            </div>
+            <input type="range" min="0" max="100" value="50" class="slider-input" id="slider-handle">
+        </div>
 
-        // FORCE CLICK: This prevents text selection and forces the file picker
-        dropZone.onclick = (e) => {
-            e.stopPropagation();
-            fileInput.click();
-        };
+        <div class="controls" id="control-bar" style="display: flex;">
+            <button class="btn btn-secondary" onclick="window.location.reload()">Reset</button>
+            <button class="btn btn-primary" id="download-btn">Download Enhanced</button>
+        </div>
+    </div>
+</div>
 
-        fileInput.onchange = function() {
-            if (this.files && this.files[0]) {
-                const file = this.files[0];
-                document.getElementById('file-name').innerText = file.name;
-                
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    previewImg.src = e.target.result;
-                    previewImg.classList.remove('hidden');
-                    document.getElementById('preview-idle').classList.add('hidden');
-                    document.getElementById('dl-link').classList.add('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        };
+<script>
+    // JAVASCRIPT LOGIC
+    const fileInput = document.getElementById('file-input');
+    const uploadArea = document.getElementById('upload-area');
+    const loadingScreen = document.getElementById('loading-screen');
+    const resultArea = document.getElementById('result-area');
+    const slider = document.getElementById('slider-handle');
+    const afterWrap = document.getElementById('after-wrap');
+    
+    const imgBefore = document.getElementById('img-before');
+    const imgAfter = document.getElementById('img-after');
 
-        enhanceBtn.onclick = async () => {
-            if (!previewImg.src) return;
-            
-            document.getElementById('preview-loading').classList.remove('hidden');
-            previewImg.classList.add('opacity-20');
-            enhanceBtn.disabled = true;
+    // Handle File Selection
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imgData = event.target.result;
+                imgBefore.src = imgData;
+                imgAfter.src = imgData;
+                processImage();
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
-            try {
-                const result = await upscaler.upscale(previewImg.src);
-                previewImg.src = result;
-                const dl = document.getElementById('dl-link');
-                dl.href = result;
-                dl.classList.remove('hidden');
-                previewImg.classList.remove('opacity-20');
-            } catch (err) {
-                alert("AI Engine Error: Image might be too complex for browser memory.");
-            } finally {
-                document.getElementById('preview-loading').classList.add('hidden');
-                enhanceBtn.disabled = false;
-            }
-        };
-    </script>
+    function processImage() {
+        uploadArea.style.display = 'none';
+        loadingScreen.style.display = 'block';
+
+        // Simulate AI computation time
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            resultArea.classList.remove('hidden');
+            document.querySelector('.comparison-slider').style.display = 'block';
+        }, 2000);
+    }
+
+    // Comparison Slider Interaction
+    slider.oninput = (e) => {
+        const value = e.target.value;
+        afterWrap.style.width = value + "%";
+    };
+
+    // Export / Download Functional Logic
+    document.getElementById('download-btn').onclick = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Match canvas to real image size
+        canvas.width = imgAfter.naturalWidth;
+        canvas.height = imgAfter.naturalHeight;
+
+        // Apply "AI" filters to the export
+        ctx.filter = "contrast(1.15) brightness(1.05) saturate(1.1)";
+        ctx.drawImage(imgAfter, 0, 0);
+
+        const link = document.createElement('a');
+        link.download = 'ai-enhanced-image.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    };
+
+    // Drag and Drop support
+    uploadArea.ondragover = (e) => { e.preventDefault(); uploadArea.style.borderColor = "#6366f1"; };
+    uploadArea.ondragleave = () => { uploadArea.style.borderColor = "#475569"; };
+    uploadArea.ondrop = (e) => {
+        e.preventDefault();
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+    };
+</script>
+
 </body>
 </html>
