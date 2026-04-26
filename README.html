@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Vision | Image Enhancer Pro</title>
+    <title>AI Vision | Neural Image Enhancer</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/default-model@0.10.1/dist/bundle.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/upscaler@0.14.1/dist/browser/umd/upscaler.min.js"></script>
+    
     <style>
         :root {
             --primary: #6366f1;
@@ -18,12 +22,11 @@
         body {
             background-color: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
         .container {
@@ -40,23 +43,19 @@
         header h1 span { color: var(--primary); }
         header p { color: var(--text-dim); margin-bottom: 2rem; font-size: 0.95rem; }
 
-        /* Upload Area */
         .upload-box {
             border: 2px dashed #475569;
             padding: 4rem 2rem;
             border-radius: 1.5rem;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
             background: rgba(15, 23, 42, 0.3);
         }
 
         .upload-box:hover {
             border-color: var(--primary);
             background: rgba(99, 102, 241, 0.05);
-            transform: translateY(-2px);
         }
-
-        .upload-box .icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
 
         /* Loading Screen */
         #loading-screen { display: none; padding: 2rem; }
@@ -66,7 +65,7 @@
             border: 5px solid rgba(255, 255, 255, 0.1);
             border-top: 5px solid var(--primary);
             border-radius: 50%;
-            animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            animation: spin 1s linear infinite;
             margin: 0 auto 1.5rem;
         }
 
@@ -78,11 +77,9 @@
             position: relative;
             width: 100%;
             aspect-ratio: 16 / 10;
-            max-height: 500px;
+            background: #000;
             border-radius: 1rem;
             overflow: hidden;
-            background: #000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .img {
@@ -90,21 +87,12 @@
             height: 100%;
             object-fit: contain;
             position: absolute;
-            top: 0;
-            left: 0;
-            user-select: none;
-            pointer-events: none;
-        }
-
-        #img-after {
-            filter: contrast(1.2) brightness(1.1) saturate(1.1) sharpness(2px);
-            -webkit-filter: contrast(1.2) brightness(1.1) saturate(1.1);
+            top: 0; left: 0;
         }
 
         .after-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             width: 50%;
             height: 100%;
             overflow: hidden;
@@ -114,19 +102,15 @@
 
         .slider-input {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             width: 100%;
             height: 100%;
             -webkit-appearance: none;
-            appearance: none;
             background: transparent;
             cursor: ew-resize;
             z-index: 10;
-            outline: none;
         }
 
-        /* Controls */
         .controls {
             margin-top: 2rem;
             display: flex;
@@ -141,57 +125,45 @@
             cursor: pointer;
             border: none;
             transition: 0.3s;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
         }
 
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
         .btn-secondary { background: #334155; color: #cbd5e1; }
-        .btn-secondary:hover { background: #475569; }
-
-        @media (max-width: 600px) {
-            .container { padding: 1.5rem; }
-            header h1 { font-size: 1.8rem; }
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header id="header-text">
+    <header>
         <h1>AI<span>Enhance</span> Pro</h1>
-        <p>Advanced Neural Pixel Reconstruction</p>
+        <p>Neural Pixel Reconstruction Engine</p>
     </header>
 
     <div id="upload-area" class="upload-box">
         <input type="file" id="file-input" accept="image/*" hidden>
-        <span class="icon">🚀</span>
-        <h3>Upload Image to Enhance</h3>
-        <p>Drag and drop or click to browse</p>
+        <span style="font-size: 3.5rem;">✨</span>
+        <h3>Drop Image for AI Upscaling</h3>
+        <p>Uses ESRGAN Neural Network</p>
     </div>
 
     <div id="loading-screen">
         <div class="spinner"></div>
-        <h3 id="status-text">Analyzing Pixels...</h3>
-        <p>Applying deep learning models</p>
+        <h3 id="status-text">Waking up Neural Engine...</h3>
+        <p id="progress-subtext">This may take a few seconds depending on your GPU</p>
     </div>
 
     <div id="result-area">
         <div class="slider-container">
             <img id="img-before" class="img" src="" alt="Original">
-            
             <div class="after-overlay" id="after-wrap">
                 <img id="img-after" class="img" src="" alt="Enhanced">
             </div>
-
             <input type="range" min="0" max="100" value="50" class="slider-input" id="slider-range">
         </div>
 
         <div class="controls">
-            <button class="btn btn-secondary" onclick="window.location.reload()">Start Over</button>
-            <button class="btn btn-primary" id="download-btn">Download Result</button>
+            <button class="btn btn-secondary" onclick="location.reload()">New Image</button>
+            <button class="btn btn-primary" id="download-btn">Download 4K Result</button>
         </div>
     </div>
 </div>
@@ -201,112 +173,63 @@
     const uploadArea = document.getElementById('upload-area');
     const loadingScreen = document.getElementById('loading-screen');
     const resultArea = document.getElementById('result-area');
-    const slider = document.getElementById('slider-range');
-    const afterWrap = document.getElementById('after-wrap');
+    const statusText = document.getElementById('status-text');
     const imgBefore = document.getElementById('img-before');
     const imgAfter = document.getElementById('img-after');
-    const statusText = document.getElementById('status-text');
+    const afterWrap = document.getElementById('after-wrap');
+    const slider = document.getElementById('slider-range');
 
-    // Trigger click on box click
-    uploadArea.addEventListener('click', () => fileInput.click());
+    // Initialize Upscaler
+    const upscaler = new Upscaler();
 
-    // Drag & Drop
-    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = "#6366f1"; });
-    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = "#475569"; });
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if(e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            handleFiles(e.dataTransfer.files[0]);
-        }
-    });
+    uploadArea.onclick = () => fileInput.click();
 
-    fileInput.addEventListener('change', (e) => {
-        if(e.target.files.length) handleFiles(e.target.files[0]);
-    });
+    fileInput.onchange = (e) => {
+        if (e.target.files.length) processImage(e.target.files[0]);
+    };
 
-    function handleFiles(file) {
-        if (!file.type.startsWith('image/')) {
-            alert("Error: Please upload an image file (PNG, JPG).");
-            return;
-        }
-
+    async function processImage(file) {
         const reader = new FileReader();
+        reader.readAsDataURL(file);
         
-        reader.onloadstart = () => {
+        reader.onload = async (e) => {
+            const dataUrl = e.target.result;
+            imgBefore.src = dataUrl;
+            
             uploadArea.style.display = 'none';
             loadingScreen.style.display = 'block';
-        };
+            statusText.innerText = "Reconstructing Pixels...";
 
-        reader.onload = (e) => {
-            const dataUrl = e.target.result;
-            
-            // Set image sources
-            imgBefore.src = dataUrl;
-            imgAfter.src = dataUrl;
+            try {
+                // REAL AI ENHANCEMENT
+                // The upscale() function uses the GPU via TensorFlow.js to redraw the image
+                const enhancedDataUrl = await upscaler.upscale(dataUrl, {
+                    patchSize: 64, // Breaks image into chunks to prevent crashing browser
+                    padding: 5
+                });
 
-            // Wait for images to load into the DOM to prevent blank canvas errors
-            imgBefore.onload = () => {
-                startSimulation();
-            };
-            
-            imgBefore.onerror = () => {
-                alert("Status Load Error: The image file is corrupted or too large.");
-                window.location.reload();
-            };
-        };
-
-        reader.readAsDataURL(file);
-    }
-
-    function startSimulation() {
-        const statuses = ["Upscaling 400%...", "Reducing Noise...", "Color Correcting...", "Finalizing..."];
-        let i = 0;
-
-        const interval = setInterval(() => {
-            statusText.innerText = statuses[i];
-            i++;
-            if (i >= statuses.length) {
-                clearInterval(interval);
-                showResults();
+                imgAfter.src = enhancedDataUrl;
+                
+                loadingScreen.style.display = 'none';
+                resultArea.style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                alert("AI Engine Error: Try a smaller image or refresh.");
+                location.reload();
             }
-        }, 600);
+        };
     }
 
-    function showResults() {
-        loadingScreen.style.display = 'none';
-        resultArea.style.display = 'block';
-        // Reset slider position
-        afterWrap.style.width = "50%";
-        slider.value = 50;
-    }
-
-    // Live Slider Update
-    slider.addEventListener('input', (e) => {
+    slider.oninput = (e) => {
         afterWrap.style.width = e.target.value + "%";
-    });
+    };
 
-    // Download Logic
-    document.getElementById('download-btn').addEventListener('click', () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        canvas.width = imgAfter.naturalWidth;
-        canvas.height = imgAfter.naturalHeight;
-
-        // Apply filters to canvas context for "Enhanced" download
-        ctx.filter = "contrast(1.2) brightness(1.1) saturate(1.1)";
-        ctx.drawImage(imgAfter, 0, 0);
-
-        try {
-            const link = document.createElement('a');
-            link.download = 'ai-enhanced-image.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        } catch (e) {
-            alert("Security Note: To download from a local file, please use Firefox or a local server (Live Server).");
-        }
-    });
+    document.getElementById('download-btn').onclick = () => {
+        const link = document.createElement('a');
+        link.download = 'ai-enhanced.png';
+        link.href = imgAfter.src;
+        link.click();
+    };
 </script>
 
 </body>
