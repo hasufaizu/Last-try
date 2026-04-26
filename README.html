@@ -3,232 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Vision | Neural Image Enhancer</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/default-model@0.10.1/dist/bundle.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/upscaler@0.14.1/dist/browser/umd/upscaler.min.js"></script>
-    
+    <title>Gemini 4K | Serverless Enhancer</title>
     <style>
-        :root {
-            --primary: #6366f1;
-            --bg: #0f172a;
-            --card: #1e293b;
-            --text: #f8fafc;
-            --text-dim: #94a3b8;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 95%;
-            max-width: 850px;
-            background: var(--card);
-            padding: 2.5rem;
-            border-radius: 2rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            text-align: center;
-        }
-
-        header h1 { font-size: 2.2rem; margin-bottom: 0.5rem; letter-spacing: -1px; }
-        header h1 span { color: var(--primary); }
-        header p { color: var(--text-dim); margin-bottom: 2rem; font-size: 0.95rem; }
-
-        .upload-box {
-            border: 2px dashed #475569;
-            padding: 4rem 2rem;
-            border-radius: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(15, 23, 42, 0.3);
-        }
-
-        .upload-box:hover {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        /* Loading Screen */
-        #loading-screen { display: none; padding: 2rem; }
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1.5rem;
-        }
-
+        :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { width: 90%; max-width: 800px; background: var(--card); padding: 2.5rem; border-radius: 2rem; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .upload-box { border: 2px dashed #475569; padding: 4rem; border-radius: 1.5rem; cursor: pointer; transition: 0.3s; }
+        .upload-box:hover { border-color: var(--primary); background: rgba(99, 102, 241, 0.05); }
+        #loading { display: none; margin: 2rem 0; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #334155; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* Comparison Slider */
-        #result-area { display: none; }
-        .slider-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16 / 10;
-            background: #000;
-            border-radius: 1rem;
-            overflow: hidden;
-        }
-
-        .img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            position: absolute;
-            top: 0; left: 0;
-        }
-
-        .after-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 50%;
-            height: 100%;
-            overflow: hidden;
-            border-right: 3px solid var(--primary);
-            z-index: 2;
-        }
-
-        .slider-input {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            -webkit-appearance: none;
-            background: transparent;
-            cursor: ew-resize;
-            z-index: 10;
-        }
-
-        .controls {
-            margin-top: 2rem;
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 0.9rem 2rem;
-            border-radius: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            border: none;
-            transition: 0.3s;
-        }
-
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: #334155; color: #cbd5e1; }
+        .slider-container { position: relative; width: 100%; display: none; border-radius: 1rem; overflow: hidden; margin-top: 1rem; }
+        .img { width: 100%; display: block; height: auto; }
+        #after-wrap { position: absolute; top: 0; left: 0; width: 50%; height: 100%; overflow: hidden; border-right: 3px solid var(--primary); z-index: 2; }
+        .slider-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; -webkit-appearance: none; background: transparent; cursor: ew-resize; z-index: 10; outline: none; }
+        .btn { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>AI<span>Enhance</span> Pro</h1>
-        <p>Neural Pixel Reconstruction Engine</p>
+        <h1>Gemini<span>Vision</span> Pro</h1>
+        <p>Direct 4K Neural Upscaling</p>
     </header>
 
-    <div id="upload-area" class="upload-box">
-        <input type="file" id="file-input" accept="image/*" hidden>
-        <span style="font-size: 3.5rem;">✨</span>
-        <h3>Drop Image for AI Upscaling</h3>
-        <p>Uses ESRGAN Neural Network</p>
+    <div id="upload-area" class="upload-box" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" hidden accept="image/*">
+        <span style="font-size: 3rem;">🖼️</span>
+        <h3>Select Image</h3>
+        <p>Direct Browser-to-AI Enhancement</p>
     </div>
 
-    <div id="loading-screen">
+    <div id="loading">
         <div class="spinner"></div>
-        <h3 id="status-text">Waking up Neural Engine...</h3>
-        <p id="progress-subtext">This may take a few seconds depending on your GPU</p>
+        <p>Gemini is regenerating pixels...</p>
     </div>
 
-    <div id="result-area">
-        <div class="slider-container">
-            <img id="img-before" class="img" src="" alt="Original">
-            <div class="after-overlay" id="after-wrap">
-                <img id="img-after" class="img" src="" alt="Enhanced">
-            </div>
-            <input type="range" min="0" max="100" value="50" class="slider-input" id="slider-range">
+    <div id="result-area" class="slider-container">
+        <img id="img-before" class="img" alt="Original">
+        <div id="after-wrap">
+            <img id="img-after" class="img" alt="Enhanced">
         </div>
-
-        <div class="controls">
-            <button class="btn btn-secondary" onclick="location.reload()">New Image</button>
-            <button class="btn btn-primary" id="download-btn">Download 4K Result</button>
+        <input type="range" min="0" max="100" value="50" class="slider-input" id="slider">
+        <div style="margin-top: 1rem; display: flex; gap: 10px; justify-content: center;">
+            <button class="btn" onclick="location.reload()" style="background: #334155;">New Image</button>
+            <button class="btn" id="download-btn">Download 4K</button>
         </div>
     </div>
 </div>
 
-<script>
+<script type="importmap">
+  {
+    "imports": {
+      "@google/generative-ai": "https://esm.run/@google/generative-ai"
+    }
+  }
+</script>
+
+<script type="module">
+    import { GoogleGenerativeAI } from "@google/generative-ai";
+
+    // 1. PLACE YOUR KEY HERE
+    const API_KEY = "AIzaSyC4vK5cdkvqbbXbS6h0kZqD1CN2iM-tla8"; 
+    const genAI = new GoogleGenerativeAI(API_KEY);
+
     const fileInput = document.getElementById('file-input');
     const uploadArea = document.getElementById('upload-area');
-    const loadingScreen = document.getElementById('loading-screen');
+    const loading = document.getElementById('loading');
     const resultArea = document.getElementById('result-area');
-    const statusText = document.getElementById('status-text');
     const imgBefore = document.getElementById('img-before');
     const imgAfter = document.getElementById('img-after');
-    const afterWrap = document.getElementById('after-wrap');
-    const slider = document.getElementById('slider-range');
+    const slider = document.getElementById('slider');
 
-    // Initialize Upscaler
-    const upscaler = new Upscaler();
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-    uploadArea.onclick = () => fileInput.click();
-
-    fileInput.onchange = (e) => {
-        if (e.target.files.length) processImage(e.target.files[0]);
-    };
-
-    async function processImage(file) {
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        
-        reader.onload = async (e) => {
-            const dataUrl = e.target.result;
-            imgBefore.src = dataUrl;
-            
+        reader.onload = async () => {
             uploadArea.style.display = 'none';
-            loadingScreen.style.display = 'block';
-            statusText.innerText = "Reconstructing Pixels...";
+            loading.style.display = 'block';
+            imgBefore.src = reader.result;
 
             try {
-                // REAL AI ENHANCEMENT
-                // The upscale() function uses the GPU via TensorFlow.js to redraw the image
-                const enhancedDataUrl = await upscaler.upscale(dataUrl, {
-                    patchSize: 64, // Breaks image into chunks to prevent crashing browser
-                    padding: 5
-                });
-
-                imgAfter.src = enhancedDataUrl;
+                // 2. Call Nano Banana Pro (Gemini 3 Flash Image)
+                const model = genAI.getGenerativeModel({ model: "gemini-3-flash-image" });
                 
-                loadingScreen.style.display = 'none';
-                resultArea.style.display = 'block';
+                // Convert base64 to the format Gemini expects
+                const base64Data = reader.result.split(',')[1];
+                
+                const prompt = "Enhance this image to 4K resolution. Remove all artifacts, noise, and blur. Sharpen textures and lighting while keeping the content 100% identical to the original.";
+
+                const result = await model.generateContent([
+                    prompt,
+                    { inlineData: { data: base64Data, mimeType: file.type } }
+                ]);
+
+                const response = await result.response;
+                
+                // 3. Extract the image from the response
+                // Note: Gemini returns an image part in its content
+                const candidates = response.candidates[0].content.parts;
+                const imagePart = candidates.find(part => part.inlineData);
+
+                if (imagePart) {
+                    imgAfter.src = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+                    loading.style.display = 'none';
+                    resultArea.style.display = 'block';
+                } else {
+                    throw new Error("Gemini didn't return an image. Try a clearer prompt.");
+                }
+
             } catch (err) {
                 console.error(err);
-                alert("AI Engine Error: Try a smaller image or refresh.");
+                alert("Error: " + err.message);
                 location.reload();
             }
         };
-    }
+    };
 
     slider.oninput = (e) => {
-        afterWrap.style.width = e.target.value + "%";
+        document.getElementById('after-wrap').style.width = e.target.value + "%";
     };
 
     document.getElementById('download-btn').onclick = () => {
-        const link = document.createElement('a');
-        link.download = 'ai-enhanced.png';
-        link.href = imgAfter.src;
-        link.click();
+        const a = document.createElement("a");
+        a.href = imgAfter.src;
+        a.download = "gemini-enhanced-4k.png";
+        a.click();
     };
 </script>
 
