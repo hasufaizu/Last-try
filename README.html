@@ -5,6 +5,7 @@
     <title>VisionAI | Personal Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/upscaler@latest/dist/browser/umd/upscaler.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@latest/dist/browser/umd/2x.min.js"></script>
@@ -13,44 +14,45 @@
         body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.1); }
         .btn-glow:hover { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        .accent-glow { box-shadow: 0 0 50px rgba(59, 130, 246, 0.05); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
 
     <div class="glass w-full max-w-4xl rounded-[2.5rem] p-10 accent-glow">
         <div class="flex justify-between items-center mb-10">
-            <h1 class="text-2xl font-black tracking-tighter">VISION<span class="text-blue-500">AI</span></h1>
+            <h1 class="text-2xl font-black tracking-tighter uppercase">Vision<span class="text-blue-500">AI</span></h1>
             <div id="status-tag" class="text-[10px] text-slate-500 font-mono bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
-                STATUS: READY
+                STATUS: ENGINE READY
             </div>
         </div>
 
         <div class="grid md:grid-cols-2 gap-8">
             <div class="space-y-6">
-                <div id="drop-zone" class="h-64 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/50 transition-all">
+                <div id="drop-zone" class="h-64 border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500/50 transition-all group">
                     <input type="file" id="file-input" class="hidden" accept="image/*">
-                    <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-700 mb-2"></i>
-                    <p id="file-name" class="text-slate-500 text-sm">Select Image</p>
+                    <i class="fa-solid fa-wand-magic-sparkles text-4xl text-slate-700 mb-2 group-hover:text-blue-500 transition-colors"></i>
+                    <p id="file-name" class="text-slate-500 text-sm">Drop image or click to browse</p>
                 </div>
 
                 <button id="enhance-btn" class="w-full py-5 bg-blue-600 rounded-2xl font-bold tracking-widest btn-glow transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                    ENHANCE (LOCAL AI)
+                    ENHANCE WITH LOCAL AI
                 </button>
             </div>
 
-            <div class="bg-black/60 rounded-3xl border border-slate-800 flex items-center justify-center relative min-h-[350px] overflow-hidden">
+            <div class="bg-black/40 rounded-3xl border border-slate-800 flex items-center justify-center relative min-h-[350px] overflow-hidden">
                 <div id="preview-idle" class="text-slate-800 text-center">
                     <i class="fa-solid fa-image text-6xl mb-2"></i>
-                    <p class="text-xs font-bold uppercase">No Output</p>
+                    <p class="text-xs font-bold uppercase tracking-widest">No Output</p>
                 </div>
 
-                <div id="preview-loading" class="hidden text-center">
-                    <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p id="loading-text" class="text-blue-500 text-[10px] font-bold">BOOTING AI ENGINE...</p>
+                <div id="preview-loading" class="hidden text-center z-10">
+                    <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p class="text-blue-500 text-[10px] font-bold tracking-tighter">AI IS UPSCALING ON YOUR GPU...</p>
                 </div>
 
-                <img id="preview-img" src="" class="hidden w-full h-full object-contain p-2">
-                <a id="dl-link" href="#" download="enhanced-vision-ai.png" class="hidden absolute bottom-4 right-4 bg-white text-black p-3 rounded-full shadow-xl hover:scale-110 transition-transform">
+                <img id="preview-img" src="" class="hidden w-full h-full object-contain">
+                <a id="dl-link" href="#" download="vision-ai-enhanced.png" class="hidden absolute bottom-4 right-4 bg-white text-black p-4 rounded-full shadow-2xl hover:scale-110 transition-transform z-20">
                     <i class="fa-solid fa-download"></i>
                 </a>
             </div>
@@ -58,9 +60,9 @@
     </div>
 
     <script>
-        // Initialize the local Upscaler engine
+        // 1. Initialize the Local AI Model
         const upscaler = new Upscaler({
-            model: window['esrgan-slim']['2x'] 
+            model: window['esrgan-slim']['2x']
         });
 
         const fileInput = document.getElementById('file-input');
@@ -70,49 +72,53 @@
         const idle = document.getElementById('preview-idle');
         const dlLink = document.getElementById('dl-link');
         const statusTag = document.getElementById('status-tag');
+        const fileName = document.getElementById('file-name');
 
-        let selectedFile = null;
+        let currentImageData = null;
 
+        // Handle File Selection
         document.getElementById('drop-zone').onclick = () => fileInput.click();
-
+        
         fileInput.onchange = (e) => {
-            selectedFile = e.target.files[0];
-            if(selectedFile) {
-                document.getElementById('file-name').innerText = selectedFile.name;
-                // Show original as preview immediately
+            const file = e.target.files[0];
+            if (file) {
+                fileName.innerText = file.name;
                 const reader = new FileReader();
-                reader.onload = (re) => {
-                    previewImg.src = re.target.result;
+                reader.onload = (event) => {
+                    currentImageData = event.target.result;
+                    previewImg.src = currentImageData;
                     previewImg.classList.remove('hidden');
                     idle.classList.add('hidden');
-                }
-                reader.readAsDataURL(selectedFile);
+                    dlLink.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
             }
         };
 
+        // 2. The Main Enhancement Logic (Local & Free)
         enhanceBtn.onclick = async () => {
-            if(!selectedFile) return alert("Upload an image first.");
-            
+            if (!currentImageData) return alert("Please select an image first!");
+
+            // UI State Change
             enhanceBtn.disabled = true;
             loading.classList.remove('hidden');
-            previewImg.classList.add('opacity-30'); // Dim existing preview
-            statusTag.innerText = "STATUS: PROCESSING";
-            document.getElementById('loading-text').innerText = "AI UPSCALING (LOCAL GPU)...";
+            previewImg.classList.add('opacity-20');
+            statusTag.innerText = "STATUS: PROCESSING...";
 
             try {
-                // Upscale directly using the image source
-                const enhancedImage = await upscaler.upscale(previewImg.src);
+                // This runs the ESRGAN model directly in the browser
+                const enhancedDataUrl = await upscaler.upscale(currentImageData);
+
+                // Update Preview and Download link
+                previewImg.src = enhancedDataUrl;
+                dlLink.href = enhancedDataUrl;
                 
-                // Show result
-                previewImg.src = enhancedImage;
-                previewImg.classList.remove('opacity-30', 'hidden');
-                dlLink.href = enhancedImage;
+                previewImg.classList.remove('hidden', 'opacity-20');
                 dlLink.classList.remove('hidden');
-                
                 statusTag.innerText = "STATUS: COMPLETE";
             } catch (err) {
-                console.error(err);
-                alert("Processing failed. Your browser might have run out of memory.");
+                console.error("AI Error:", err);
+                alert("Enhancement failed. This usually happens if the image is too large for your browser's memory.");
                 statusTag.innerText = "STATUS: ERROR";
             } finally {
                 loading.classList.add('hidden');
