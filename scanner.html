@@ -1,327 +1,653 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Image Gallery</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>AI Image Enhancer | Upscale & Sharpen</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    }
 
-        body {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            min-height: 100vh;
-            padding: 2rem;
-        }
+    body {
+      background: linear-gradient(145deg, #f6f9fc 0%, #eef2f5 100%);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+    /* main card */
+    .enhancer-card {
+      max-width: 1280px;
+      width: 100%;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(0px);
+      border-radius: 3rem;
+      box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
 
-        .header {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            padding: 1.5rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-            color: white;
-        }
+    /* header */
+    .hero {
+      background: #0b1120;
+      color: white;
+      padding: 2rem 2rem 1.8rem 2rem;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #FFFFFF, #b9c8ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: inline-block;
+    }
+    .hero p {
+      margin-top: 0.65rem;
+      opacity: 0.75;
+      font-weight: 450;
+      font-size: 1rem;
+    }
+    .badge {
+      display: inline-block;
+      background: #2d3748;
+      padding: 0.2rem 0.9rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-top: 1rem;
+      color: #cbd5ff;
+    }
 
-        .stats {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
+    /* two column layout */
+    .grid-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      padding: 2rem 2rem 2rem 2rem;
+    }
 
-        .stat-card {
-            background: rgba(255,255,255,0.1);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            flex: 1;
-        }
+    .upload-area {
+      flex: 1.2;
+      min-width: 260px;
+    }
 
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
+    .preview-area {
+      flex: 1.8;
+      min-width: 280px;
+    }
 
-        .image-card {
-            background: white;
-            border-radius: 1rem;
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+    /* upload box */
+    .dropzone {
+      background: #f8fafd;
+      border-radius: 2rem;
+      border: 2px dashed #cbd5e1;
+      transition: all 0.2s;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+    }
+    .dropzone:hover {
+      border-color: #3b82f6;
+      background: #f0f6ff;
+    }
+    .dropzone.active-drag {
+      background: #e9f2fe;
+      border-color: #2563eb;
+    }
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+    }
+    .file-input {
+      display: none;
+    }
+    .btn-select {
+      background: #1e293b;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 2rem;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 0.8rem;
+    }
+    .btn-select:hover {
+      background: #0f172a;
+      transform: scale(0.98);
+    }
 
-        .image-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
+    /* settings */
+    .settings-card {
+      background: #ffffffdd;
+      backdrop-filter: blur(2px);
+      border-radius: 1.5rem;
+      padding: 1.2rem 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border: 1px solid #e2edf7;
+    }
+    .settings-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #0f172a;
+    }
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      background: #f1f5f9;
+      padding: 0.4rem 1rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .radio-group input {
+      accent-color: #3b82f6;
+      width: 1rem;
+      height: 1rem;
+    }
+    .format-group {
+      margin-top: 0.2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .format-group span {
+      font-weight: 500;
+      color: #334155;
+    }
+    .format-select {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 2rem;
+      padding: 0.4rem 1rem;
+      font-weight: 500;
+    }
+    .enhance-btn {
+      width: 100%;
+      margin-top: 1.8rem;
+      background: linear-gradient(95deg, #3b82f6, #2563eb);
+      border: none;
+      padding: 0.85rem;
+      border-radius: 3rem;
+      font-weight: 700;
+      font-size: 1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 8px 18px rgba(37,99,235,0.2);
+    }
+    .enhance-btn:disabled {
+      opacity: 0.6;
+      transform: none;
+      cursor: not-allowed;
+      filter: grayscale(0.1);
+    }
+    .enhance-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    .loader {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        .image-card img {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
-            cursor: pointer;
-        }
-
-        .image-info {
-            padding: 1rem;
-            background: white;
-        }
-
-        .image-info p {
-            font-size: 0.8rem;
-            color: #475569;
-            margin: 0.25rem 0;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-right: 0.5rem;
-        }
-
-        .badge-original {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .badge-enhanced {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .delete-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            width: 100%;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .delete-btn:hover {
-            background: #dc2626;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        .refresh-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            margin-left: 1rem;
-        }
-
-        .auth-error {
-            background: #ef4444;
-            color: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            text-align: center;
-        }
-    </style>
+    /* preview cards */
+    .image-preview {
+      background: #ffffffcc;
+      border-radius: 1.8rem;
+      padding: 1rem;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+      border: 1px solid #eef2ff;
+    }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      padding: 0 0.2rem;
+    }
+    .preview-title {
+      font-weight: 600;
+      background: #eef2ff;
+      padding: 0.2rem 1rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+    }
+    .img-container {
+      background: #f1f5f9;
+      border-radius: 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 240px;
+      overflow: hidden;
+      position: relative;
+    }
+    .preview-image {
+      max-width: 100%;
+      max-height: 360px;
+      object-fit: contain;
+      border-radius: 1rem;
+      transition: 0.2s;
+    }
+    .placeholder-text {
+      color: #94a3b8;
+      padding: 3rem;
+      text-align: center;
+      font-weight: 500;
+    }
+    .download-btn {
+      margin-top: 1rem;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 2rem;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.1s;
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+    .download-btn:hover {
+      background: #e2e8f0;
+    }
+    .error-msg {
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 0.8rem;
+      border-radius: 2rem;
+      font-size: 0.8rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .success-msg {
+      background: #dcfce7;
+      color: #15803d;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.7rem;
+      padding: 1rem 2rem 1.5rem;
+      color: #475569;
+      border-top: 1px solid #e2edf7;
+    }
+    @media (max-width: 680px) {
+      body { padding: 1rem; }
+      .grid-panel { padding: 1.2rem; gap: 1.2rem; }
+      .hero h1 { font-size: 1.6rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔐 Private Admin Gallery</h1>
-            <p>All uploaded and enhanced images - accessible only with correct password</p>
-            <div class="stats">
-                <div class="stat-card">
-                    <div>📸 Total Images</div>
-                    <div id="totalCount" style="font-size: 2rem; font-weight: bold;">0</div>
-                </div>
-                <div class="stat-card">
-                    <div>✨ Enhanced Images</div>
-                    <div id="enhancedCount" style="font-size: 2rem; font-weight: bold;">0</div>
-                </div>
-                <div class="stat-card">
-                    <div>💾 Storage Used</div>
-                    <div id="storageUsed" style="font-size: 2rem; font-weight: bold;">0 MB</div>
-                </div>
-            </div>
-            <button class="refresh-btn" onclick="loadImages()">🔄 Refresh Gallery</button>
+
+<div class="enhancer-card">
+  <div class="hero">
+    <h1>✨ AI Image Enhancer</h1>
+    <p>Upscale & refine with neural super-resolution</p>
+    <div class="badge">Picsart AI • up to 4X quality</div>
+  </div>
+
+  <div class="grid-panel">
+    <!-- LEFT: upload + settings -->
+    <div class="upload-area">
+      <div class="dropzone" id="dropzone">
+        <div class="upload-icon">🖼️📤</div>
+        <p style="font-weight: 500; margin-bottom: 6px;">Drag & drop or click to upload</p>
+        <p style="font-size: 0.75rem; color: #4b5563;">JPG, PNG, WEBP (Max 10MB)</p>
+        <button type="button" class="btn-select" id="selectFileBtn">Choose image</button>
+        <input type="file" id="fileInput" accept="image/jpeg, image/png, image/jpg, image/webp" class="file-input">
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-title">
+          <span>⚙️ Enhancement settings</span>
         </div>
-
-        <div id="gallery" class="gallery"></div>
+        <div class="radio-group">
+          <label><input type="radio" name="upscale" value="2" checked> 2x Upscale</label>
+          <label><input type="radio" name="upscale" value="4"> 4x Upscale (Premium)</label>
+          <label><input type="radio" name="upscale" value="1"> No upscale (denoise/sharpen)</label>
+        </div>
+        <div class="format-group">
+          <span>📸 Output format:</span>
+          <select id="formatSelect" class="format-select">
+            <option value="JPG">JPEG (compressed)</option>
+            <option value="PNG">PNG (lossless)</option>
+            <option value="WEBP">WEBP (efficient)</option>
+          </select>
+        </div>
+        <button id="enhanceBtn" class="enhance-btn">
+          <span>⚡ Enhance & upscale</span>
+          <span>→</span>
+        </button>
+        <div id="apiMessage" style="margin-top: 12px; font-size: 0.75rem; text-align: center;"></div>
+      </div>
     </div>
 
-    <div id="modal" class="modal" onclick="closeModal()">
-        <img id="modalImage">
+    <!-- RIGHT: original & enhanced preview -->
+    <div class="preview-area">
+      <div class="image-preview" style="margin-bottom: 1.5rem;">
+        <div class="preview-header">
+          <span class="preview-title">📷 Original Image</span>
+          <span id="originalFilename" style="font-size: 0.7rem; color: #4b5563;">No file selected</span>
+        </div>
+        <div class="img-container" id="originalContainer">
+          <img id="originalImg" class="preview-image" src="" alt="original preview" style="display: none;">
+          <div id="originalPlaceholder" class="placeholder-text">⬅️ Upload an image to begin</div>
+        </div>
+      </div>
+
+      <div class="image-preview">
+        <div class="preview-header">
+          <span class="preview-title">🌟 Enhanced Result (AI)</span>
+          <span id="enhancedStatus" style="font-size: 0.7rem; color: #2c6e2f;"></span>
+        </div>
+        <div class="img-container" id="enhancedContainer">
+          <img id="enhancedImg" class="preview-image" src="" alt="enhanced preview" style="display: none;">
+          <div id="enhancedPlaceholder" class="placeholder-text">✨ Enhanced image will appear here</div>
+        </div>
+        <button id="downloadBtn" class="download-btn" style="display: none;">
+          ⬇️ Download Enhanced Image
+        </button>
+      </div>
     </div>
+  </div>
+  <footer>
+    ⚡ Uses Picsart AI Upscale API. For best results use high‑quality photos. 4x may increase processing time.
+  </footer>
+</div>
 
-    <script>
-        // CONFIGURATION - Change these!
-        const ADMIN_PASSWORD = "unth"; // Change this to your password
-        const JSONBIN_BIN_ID = "6a01b6c0250b1311c3334aed"; // Same as index.html
-        const JSONBIN_API_KEY = "$2a$10$6GTFn.ZLxsDXMvnVcKvqB.Wb3735l20g52AebtN4HPQV0S8cu7IXq"; // Same as index.html
+<script>
+  // DOM elements
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const selectBtn = document.getElementById('selectFileBtn');
+  const originalImg = document.getElementById('originalImg');
+  const originalPlaceholder = document.getElementById('originalPlaceholder');
+  const originalFilenameSpan = document.getElementById('originalFilename');
+  const enhancedImg = document.getElementById('enhancedImg');
+  const enhancedPlaceholder = document.getElementById('enhancedPlaceholder');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const enhanceBtn = document.getElementById('enhanceBtn');
+  const apiMessageDiv = document.getElementById('apiMessage');
+  const formatSelect = document.getElementById('formatSelect');
+  const enhancedStatusSpan = document.getElementById('enhancedStatus');
 
-        let imagesData = [];
+  // current selected file (Blob/File)
+  let currentFile = null;
+  let currentOriginalUrl = null;
+  let enhancedBlobUrl = null;        // stored object URL for enhanced result
+  let enhancedDataBlob = null;        // actual blob for download
 
-        // Authentication check
-        function checkAuth() {
-            let isAuthenticated = sessionStorage.getItem('adminAuth');
-            if (!isAuthenticated) {
-                const password = prompt("🔐 Admin Access Required\nEnter password to view gallery:");
-                if (password === ADMIN_PASSWORD) {
-                    sessionStorage.setItem('adminAuth', 'true');
-                    return true;
-                } else {
-                    document.body.innerHTML = '<div class="container"><div class="auth-error">❌ Access Denied! Incorrect password.</div></div>';
-                    return false;
-                }
-            }
-            return true;
-        }
+  // API key (working as per user snippet, but keep secure note)
+  // In real production, better to proxy; but for demo using provided key.
+  const API_KEY = 'paat-qMl3eu6PSb318EAasFd9ih82byW';
+  const API_URL = 'https://api.picsart.io/tools/1.0/upscale';
 
-        // Load images from JSONBin
-        async function loadImages() {
-            if (!checkAuth()) return;
+  // Helper: clear enhanced preview
+  function clearEnhancedPreview() {
+    if (enhancedBlobUrl) {
+      URL.revokeObjectURL(enhancedBlobUrl);
+      enhancedBlobUrl = null;
+    }
+    enhancedImg.style.display = 'none';
+    enhancedPlaceholder.style.display = 'flex';
+    enhancedPlaceholder.innerText = '✨ Enhanced image will appear here';
+    downloadBtn.style.display = 'none';
+    enhancedDataBlob = null;
+    enhancedStatusSpan.innerText = '';
+  }
 
-            const galleryDiv = document.getElementById('gallery');
-            galleryDiv.innerHTML = '<div class="loading">📥 Loading images from cloud...</div>';
+  // Load original preview from file
+  function loadOriginalPreview(file) {
+    if (currentOriginalUrl) {
+      URL.revokeObjectURL(currentOriginalUrl);
+    }
+    const objectUrl = URL.createObjectURL(file);
+    currentOriginalUrl = objectUrl;
+    originalImg.src = objectUrl;
+    originalImg.style.display = 'block';
+    originalPlaceholder.style.display = 'none';
+    originalFilenameSpan.innerText = file.name.length > 35 ? file.name.slice(0, 30)+'...' : file.name;
+    // clear previous enhanced on new upload
+    clearEnhancedPreview();
+    apiMessageDiv.innerHTML = '';
+  }
 
-            try {
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
-                });
+  // handle file from input or drop
+  function handleFile(file) {
+    if (!file) return;
+    // simple validation: image and size (10MB)
+    if (!file.type.startsWith('image/')) {
+      apiMessageDiv.innerHTML = '<div class="error-msg">❌ Please select a valid image file (JPG, PNG, WEBP).</div>';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      apiMessageDiv.innerHTML = '<div class="error-msg">❌ File exceeds 10MB limit. Please compress or choose smaller image.</div>';
+      return;
+    }
+    currentFile = file;
+    loadOriginalPreview(file);
+    apiMessageDiv.innerHTML = ''; // clear errors
+  }
 
-                if (!response.ok) throw new Error('Failed to fetch data');
+  // drag & drop handlers
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('active-drag');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('active-drag');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('active-drag');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFile(files[0]);
+    }
+  });
+  dropzone.addEventListener('click', () => {
+    fileInput.click();
+  });
+  selectBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.click();
+  });
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFile(e.target.files[0]);
+    }
+  });
 
-                const data = await response.json();
-                imagesData = data.record?.images || [];
+  // get selected upscale factor (value string: '1','2','4')
+  function getUpscaleFactor() {
+    const radios = document.querySelectorAll('input[name="upscale"]');
+    for (let radio of radios) {
+      if (radio.checked) return radio.value;
+    }
+    return '2';
+  }
 
-                // Update stats
-                const total = imagesData.length;
-                const enhanced = imagesData.filter(img => img.enhanced).length;
-                const totalSize = imagesData.reduce((acc, img) => acc + (img.base64?.length || 0), 0);
-                const sizeMB = (totalSize * 0.75 / (1024 * 1024)).toFixed(1);
+  // Show loading state on enhance button
+  function setLoading(isLoading) {
+    if (isLoading) {
+      enhanceBtn.disabled = true;
+      enhanceBtn.innerHTML = `<span class="loader"></span> Enhancing... AI processing`;
+    } else {
+      enhanceBtn.disabled = false;
+      enhanceBtn.innerHTML = `<span>⚡ Enhance & upscale</span><span>→</span>`;
+    }
+  }
 
-                document.getElementById('totalCount').textContent = total;
-                document.getElementById('enhancedCount').textContent = enhanced;
-                document.getElementById('storageUsed').textContent = sizeMB;
+  // Main enhancement call using picsart API (multipart/form-data)
+  async function enhanceImage() {
+    if (!currentFile) {
+      apiMessageDiv.innerHTML = '<div class="error-msg">⚠️ Please upload an image first.</div>';
+      return;
+    }
 
-                // Render gallery
-                if (total === 0) {
-                    galleryDiv.innerHTML = '<div class="loading">📭 No images yet. Upload some images from the main page!</div>';
-                    return;
-                }
-
-                galleryDiv.innerHTML = '';
-                imagesData.forEach((image, index) => {
-                    const card = document.createElement('div');
-                    card.className = 'image-card';
-                    
-                    const date = new Date(image.timestamp).toLocaleString();
-                    const isEnhanced = image.enhanced;
-                    
-                    card.innerHTML = `
-                        <img src="${image.base64}" alt="Image ${index}" onclick="openModal(this.src)">
-                        <div class="image-info">
-                            <span class="badge ${isEnhanced ? 'badge-enhanced' : 'badge-original'}">
-                                ${isEnhanced ? '✨ Enhanced' : '📷 Original'}
-                            </span>
-                            <p>📅 ${date}</p>
-                            <p>📁 ${image.filename || (isEnhanced ? 'Enhanced image' : 'Original upload')}</p>
-                            ${image.upscaleFactor ? `<p>📊 ${image.upscaleFactor}x Upscale</p>` : ''}
-                            <button class="delete-btn" onclick="deleteImage(${image.id})">🗑️ Delete</button>
-                        </div>
-                    `;
-                    galleryDiv.appendChild(card);
-                });
-
-            } catch (error) {
-                console.error('Load error:', error);
-                galleryDiv.innerHTML = '<div class="loading">❌ Error loading images. Make sure JSONBin is configured correctly.</div>';
-            }
-        }
-
-        // Delete image
-        async function deleteImage(imageId) {
-            if (!confirm('Are you sure you want to delete this image permanently?')) return;
-
-            try {
-                // Remove from local array
-                imagesData = imagesData.filter(img => img.id !== imageId);
-                
-                // Update JSONBin
-                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': JSONBIN_API_KEY
-                    },
-                    body: JSON.stringify({ images: imagesData })
-                });
-
-                if (response.ok) {
-                    alert('✓ Image deleted successfully!');
-                    loadImages(); // Refresh gallery
-                } else {
-                    alert('❌ Failed to delete');
-                }
-            } catch (error) {
-                console.error('Delete error:', error);
-                alert('Error deleting image');
-            }
-        }
-
-        function openModal(src) {
-            const modal = document.getElementById('modal');
-            const modalImg = document.getElementById('modalImage');
-            modal.style.display = 'flex';
-            modalImg.src = src;
-        }
-
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-        }
-
-        // Initial load
-        loadImages();
-    </script>
+    // reset previous enhanced preview & messages
+    clearEnhancedPreview();
+    apiMessageDiv.innerHTML = '<div style="background:#eef2ff; border-radius:2rem; padding:0.5rem; text-align:center;">🔄 Sending to AI server ...</div>';
+    
+    const upscaleVal = getUpscaleFactor();
+    const outputFormat = formatSelect.value;  // 'JPG', 'PNG', 'WEBP'
+    
+    // prepare form data
+    const formData = new FormData();
+    formData.append('image', currentFile);
+    formData.append('upscale_factor', upscaleVal);
+    formData.append('format', outputFormat);
+    
+    // optional: for better enhancement we keep defaults.
+    const options = {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'X-Picsart-API-Key': API_KEY
+      }
+    };
+    options.body = formData;
+    
+    setLoading(true);
+    
+    try {
+      const response = await fetch(API_URL, options);
+      
+      if (!response.ok) {
+        let errorDetail = `HTTP ${response.status}`;
+        try {
+          const errJson = await response.json();
+          errorDetail = errJson.message || errJson.error || JSON.stringify(errJson);
+        } catch(e) { /* ignore */ }
+        throw new Error(`API Error (${response.status}): ${errorDetail}`);
+      }
+      
+      const result = await response.json();
+      // Picsart API returns: { data: { url } } or similar according to docs
+      // The API returns directly a JSON with "data" object containing "url" field for upscaled image
+      let enhancedImageUrl = null;
+      if (result && result.data && result.data.url) {
+        enhancedImageUrl = result.data.url;
+      } 
+      // fallback some variations (some older endpoints)
+      else if (result && result.url) {
+        enhancedImageUrl = result.url;
+      }
+      else if (result && result.output_url) {
+        enhancedImageUrl = result.output_url;
+      }
+      else {
+        // If unexpected structure, try to parse
+        console.warn('Unexpected response structure', result);
+        throw new Error('Invalid API response: missing image URL');
+      }
+      
+      // fetch the enhanced image as blob for preview and download
+      const imgResponse = await fetch(enhancedImageUrl);
+      if (!imgResponse.ok) throw new Error('Failed to fetch enhanced image from CDN');
+      const imgBlob = await imgResponse.blob();
+      const blobUrl = URL.createObjectURL(imgBlob);
+      
+      enhancedBlobUrl = blobUrl;
+      enhancedDataBlob = imgBlob;
+      enhancedImg.src = blobUrl;
+      enhancedImg.style.display = 'block';
+      enhancedPlaceholder.style.display = 'none';
+      downloadBtn.style.display = 'flex';
+      
+      const upscaleText = upscaleVal === '1' ? ' (enhanced/denoised)' : ` ${upscaleVal}x upscaled`;
+      enhancedStatusSpan.innerText = `✅ Done${upscaleText} • ${outputFormat}`;
+      apiMessageDiv.innerHTML = `<div class="success-msg" style="background:#dcfce7; padding:0.5rem; border-radius:2rem;">🎉 Enhancement complete! Click download to save.</div>`;
+      
+    } catch (err) {
+      console.error('Enhancement error:', err);
+      let userMsg = err.message;
+      if (userMsg.includes('API Error (401)') || userMsg.includes('key')) userMsg = 'Invalid API Key or unauthorized. Please check your API key.';
+      else if (userMsg.includes('429')) userMsg = 'Too many requests. Please try again later.';
+      else if (userMsg.includes('fetch')) userMsg = 'Network error. Check your internet connection.';
+      apiMessageDiv.innerHTML = `<div class="error-msg">❌ Enhancement failed: ${userMsg}</div>`;
+      clearEnhancedPreview();   // ensure nothing broken
+    } finally {
+      setLoading(false);
+    }
+  }
+  
+  // download handler for enhanced image
+  downloadBtn.addEventListener('click', () => {
+    if (!enhancedDataBlob) {
+      alert('No enhanced image available. Please run enhancement first.');
+      return;
+    }
+    const upscaleVal = getUpscaleFactor();
+    const format = formatSelect.value.toLowerCase();
+    let extension = 'jpg';
+    if (format === 'PNG') extension = 'png';
+    else if (format === 'WEBP') extension = 'webp';
+    else extension = 'jpg';
+    
+    const fileName = `enhanced_${upscaleVal}x_${Date.now()}.${extension}`;
+    const downloadUrl = URL.createObjectURL(enhancedDataBlob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 200);
+  });
+  
+  // trigger enhance
+  enhanceBtn.addEventListener('click', enhanceImage);
+  
+  // prevent memory leaks: revoke object urls before unload
+  window.addEventListener('beforeunload', () => {
+    if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+    if (enhancedBlobUrl) URL.revokeObjectURL(enhancedBlobUrl);
+  });
+  
+  // initial UI consistency: hide download btn
+  downloadBtn.style.display = 'none';
+  enhancedImg.style.display = 'none';
+  originalImg.style.display = 'none';
+</script>
 </body>
 </html>
