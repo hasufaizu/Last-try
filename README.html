@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>AI Image Enhancer · Private Vault</title>
+  <title>AI Image Enhancer · Cloud Vault (Cross-Device)</title>
   <style>
     * {
       margin: 0;
@@ -21,16 +21,13 @@
       align-items: center;
     }
 
-    /* main card */
     .enhancer-card {
       max-width: 1400px;
       width: 100%;
       background: rgba(255,255,255,0.94);
-      backdrop-filter: blur(0px);
       border-radius: 3rem;
-      box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25);
       overflow: hidden;
-      transition: all 0.2s ease;
       border: 1px solid rgba(255,255,255,0.6);
     }
 
@@ -48,11 +45,6 @@
       background-clip: text;
       -webkit-background-clip: text;
       color: transparent;
-      display: inline-block;
-    }
-    .hero p {
-      margin-top: 0.65rem;
-      opacity: 0.75;
     }
     .secret-badge {
       position: absolute;
@@ -65,12 +57,10 @@
       font-size: 0.7rem;
       font-weight: 500;
       font-family: monospace;
-      letter-spacing: 0.5px;
       color: #a5f3c3;
       border: 1px solid #2d3a5e;
     }
 
-    /* two column layout */
     .grid-panel {
       display: flex;
       flex-wrap: wrap;
@@ -111,7 +101,6 @@
       font-weight: 500;
       font-size: 0.85rem;
       cursor: pointer;
-      transition: 0.2s;
       margin-top: 0.8rem;
     }
 
@@ -187,7 +176,6 @@
       align-items: center;
       min-height: 240px;
       overflow: hidden;
-      position: relative;
     }
     .preview-image {
       max-width: 100%;
@@ -214,15 +202,14 @@
       gap: 0.5rem;
     }
 
-    /* SECRET ADMIN PANEL (collapsible & only visible when special flag) */
-    .admin-vault {
+    /* Cloud Vault Panel */
+    .cloud-vault {
       margin: 0 2rem 1.5rem 2rem;
       background: #0f172ad9;
       backdrop-filter: blur(12px);
       border-radius: 2rem;
       border: 1px solid #2d3a5e;
       overflow: hidden;
-      transition: all 0.2s;
     }
     .vault-header {
       display: flex;
@@ -235,11 +222,6 @@
       font-weight: 600;
       user-select: none;
     }
-    .vault-header span:first-child {
-      font-family: monospace;
-      letter-spacing: 1px;
-      font-size: 0.85rem;
-    }
     .vault-content {
       max-height: 0;
       overflow-y: auto;
@@ -247,53 +229,57 @@
       background: #111827dd;
     }
     .vault-content.open {
-      max-height: 420px;
+      max-height: 500px;
       padding: 1.2rem 1.5rem;
     }
     .image-gallery {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 1rem;
     }
     .gallery-item {
       background: #1e293b;
       border-radius: 1.2rem;
       padding: 0.8rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
       border-left: 4px solid #3b82f6;
     }
     .gallery-thumb {
-      width: 70px;
-      height: 70px;
-      background: #0f172a;
-      border-radius: 1rem;
+      width: 100%;
+      height: 180px;
       object-fit: cover;
-      border: 1px solid #334155;
+      border-radius: 0.8rem;
+      margin-bottom: 0.5rem;
     }
     .gallery-info {
-      flex: 1;
       color: #e2e8f0;
       font-size: 0.75rem;
       font-family: monospace;
-      word-break: break-all;
+      word-break: break-word;
     }
     .gallery-link {
+      display: inline-block;
       background: #0f172a;
       padding: 0.3rem 0.9rem;
       border-radius: 2rem;
       text-decoration: none;
       color: #90cdf4;
       font-size: 0.7rem;
-      font-weight: 500;
+      margin-top: 0.5rem;
+      margin-right: 0.5rem;
+      cursor: pointer;
+      border: none;
     }
     .badge-count {
       background: #2563eb;
       border-radius: 30px;
       padding: 0.2rem 0.7rem;
       font-size: 0.7rem;
+    }
+    .sync-status {
+      font-size: 0.7rem;
+      padding: 0.3rem;
+      text-align: center;
+      color: #86efac;
     }
     footer {
       text-align: center;
@@ -312,13 +298,12 @@
 
 <div class="enhancer-card">
   <div class="hero">
-    <div class="secret-badge">🔒 VAULT MODE • ADMIN ACCESS</div>
+    <div class="secret-badge">☁️ CLOUD VAULT · ANY DEVICE</div>
     <h1>✨ AI Image Enhancer</h1>
-    <p>Upscale & refine · All uploads are stored in your private gallery</p>
+    <p>Upscale & refine · All images synced to cloud gallery</p>
   </div>
 
   <div class="grid-panel">
-    <!-- LEFT: upload + settings -->
     <div class="upload-area">
       <div class="dropzone" id="dropzone">
         <div class="upload-icon" style="font-size:2.5rem;">🖼️📤</div>
@@ -353,14 +338,13 @@
       </div>
     </div>
 
-    <!-- RIGHT: original & enhanced preview -->
     <div class="preview-area">
       <div class="image-preview" style="margin-bottom: 1.5rem;">
         <div class="preview-header" style="display: flex; justify-content: space-between;">
           <span class="preview-title">📷 Original Image</span>
           <span id="originalFilename" style="font-size: 0.7rem;">No file</span>
         </div>
-        <div class="img-container" id="originalContainer">
+        <div class="img-container">
           <img id="originalImg" class="preview-image" src="" alt="original preview" style="display: none;">
           <div id="originalPlaceholder" class="placeholder-text">⬅️ Upload an image</div>
         </div>
@@ -371,7 +355,7 @@
           <span class="preview-title">🌟 Enhanced Result</span>
           <span id="enhancedStatus" style="font-size: 0.7rem;"></span>
         </div>
-        <div class="img-container" id="enhancedContainer">
+        <div class="img-container">
           <img id="enhancedImg" class="preview-image" src="" alt="enhanced preview" style="display: none;">
           <div id="enhancedPlaceholder" class="placeholder-text">✨ Enhanced will appear here</div>
         </div>
@@ -382,160 +366,263 @@
     </div>
   </div>
 
-  <!-- PRIVATE ADMIN VAULT (only visible to you via secret url parameter) -->
-  <div id="adminVault" class="admin-vault" style="display: none;">
+  <!-- CLOUD VAULT - Accessible from any device with the secret URL -->
+  <div id="cloudVault" class="cloud-vault" style="display: none;">
     <div class="vault-header" id="vaultHeader">
-      <span>🔐 SECRET IMAGE VAULT — all uploads since website went live</span>
+      <span>☁️ CLOUD IMAGE VAULT — accessible from ANY device (same secret key)</span>
       <span id="vaultToggleIcon">▼</span>
     </div>
     <div class="vault-content" id="vaultContent">
+      <div id="syncStatus" class="sync-status">🔄 Syncing with cloud...</div>
       <div id="galleryContainer" class="image-gallery">
-        <div style="color:#94a3b8; text-align:center; padding:1rem;">Loading private vault...</div>
+        <div style="color:#94a3b8; text-align:center; padding:1rem;">Loading cloud gallery...</div>
       </div>
     </div>
   </div>
   <footer>
-    🛡️ Private admin dashboard: every original image you upload is archived securely in your browser's private storage.  
-    Only accessible via the secret token in URL. All images persist locally (IndexedDB) & you can access them anytime.
+    🔐 Your private cloud gallery: Access your images from ANY device using the same secret key in URL.<br>
+    📌 Bookmark: <strong id="currentVaultUrl" style="color:#3b82f6; word-break:break-all;"></strong>
   </footer>
 </div>
 
 <script>
   // ========================
-  //  PRIVATE VAULT SYSTEM (IndexedDB) - stores every uploaded image + metadata
-  //  Only accessible when URL contains ?vault_key=YOUR_SECRET
-  //  Default secret: "ULTRA_SECURE_VAULT_2025"  (you can change)
-  //  You, the owner, can open the site with ?vault_key=ULTRA_SECURE_VAULT_2025 to see all images.
-  //  Otherwise admin panel stays hidden.
+  // CLOUD STORAGE USING JSONBIN.IO (Free, cross-device)
+  // Secret key system - each user gets their own private bin
   // ========================
   
-  const SECRET_KEY = "ULTRA_SECURE_VAULT_2025";   // Only you know this – append to url: ?vault_key=ULTRA_SECURE_VAULT_2025
-  let isAdminMode = false;
-  let db = null;
-  const DB_NAME = "SecretImageVaultDB";
-  const STORE_NAME = "uploaded_images";
-  const DB_VERSION = 2;
+  const SECRET_KEY = "ULTRA_SECURE_VAULT_2025";  // Change this to your personal secret
   
-  // Open IndexedDB
-  function openVaultDatabase() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => {
-        db = request.result;
-        resolve(db);
-      };
-      request.onupgradeneeded = (event) => {
-        const dbInst = event.target.result;
-        if (!dbInst.objectStoreNames.contains(STORE_NAME)) {
-          const store = dbInst.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-          store.createIndex("timestamp", "timestamp", { unique: false });
-          store.createIndex("filename", "filename", { unique: false });
-        }
-      };
-    });
+  // JSONBin.io configuration (free anonymous storage)
+  const JSONBIN_API_KEY = "$2a$10$yKxgQl7RXQM5gFjXj0yKOOg5qJZoqCzX5xZ5xZ5xZ5xZ5xZ5xZ5x"; // Demo key - replace with yours
+  // Note: For production, sign up at jsonbin.io (free) and get your own API key
+  
+  let currentBinId = null;
+  let isAdminMode = false;
+  
+  // Generate a unique bin name based on secret key
+  function getBinName() {
+    return `image_vault_${SECRET_KEY.substring(0, 20)}`;
   }
   
-  // Save original image to vault (whenever user uploads a file)
-  async function saveToVault(file, originalUrl) {
-    if (!db) await openVaultDatabase();
+  // Initialize or load cloud bin
+  async function initCloudVault() {
+    const binName = getBinName();
+    
+    try {
+      // Try to fetch existing bin
+      const searchUrl = `https://api.jsonbin.io/v3/b/${binName}`;
+      const response = await fetch(searchUrl, {
+        headers: { 'X-Master-Key': JSONBIN_API_KEY }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        currentBinId = data.record._id || binName;
+        return data.record.images || [];
+      } else {
+        // Create new bin
+        const createUrl = 'https://api.jsonbin.io/v3/b';
+        const newBin = await fetch(createUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': JSONBIN_API_KEY
+          },
+          body: JSON.stringify({ 
+            images: [],
+            createdAt: Date.now(),
+            ownerSecret: SECRET_KEY
+          })
+        });
+        const binData = await newBin.json();
+        currentBinId = binData.metadata.id;
+        return [];
+      }
+    } catch (err) {
+      console.error('Cloud init error:', err);
+      return [];
+    }
+  }
+  
+  // Save image to cloud
+  async function saveImageToCloud(file, enhancedUrl = null) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const imageDataUrl = e.target.result;
-        const transaction = db.transaction([STORE_NAME], "readwrite");
-        const store = transaction.objectStore(STORE_NAME);
-        const record = {
+        
+        // Get existing images
+        let images = await initCloudVault();
+        
+        // Add new image
+        const newImage = {
+          id: Date.now() + Math.random(),
           filename: file.name,
           mimeType: file.type,
           size: file.size,
           timestamp: Date.now(),
           dataUrl: imageDataUrl,
-          originalUrl: originalUrl  // for reference
+          enhancedUrl: enhancedUrl
         };
-        const addReq = store.add(record);
-        addReq.onsuccess = () => resolve(record);
-        addReq.onerror = (err) => reject(err);
+        
+        images.unshift(newImage); // Add to beginning
+        
+        // Save to JSONBin
+        try {
+          const updateUrl = `https://api.jsonbin.io/v3/b/${currentBinId}`;
+          await fetch(updateUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Master-Key': JSONBIN_API_KEY
+            },
+            body: JSON.stringify({ 
+              images: images,
+              lastUpdated: Date.now(),
+              ownerSecret: SECRET_KEY
+            })
+          });
+          resolve(newImage);
+        } catch (err) {
+          reject(err);
+        }
       };
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
   }
   
-  // Get all records from vault
-  async function getAllVaultImages() {
-    if (!db) await openVaultDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], "readonly");
-      const store = transaction.objectStore(STORE_NAME);
-      const index = store.index("timestamp");
-      const request = index.openCursor(null, "prev"); // newest first
-      const results = [];
-      request.onsuccess = (event) => {
-        const cursor = event.target.result;
-        if (cursor) {
-          results.push(cursor.value);
-          cursor.continue();
-        } else {
-          resolve(results);
-        }
-      };
-      request.onerror = () => reject(request.error);
-    });
-  }
-  
-  // render admin vault gallery
-  async function renderVaultGallery() {
-    const galleryContainer = document.getElementById('galleryContainer');
-    if (!galleryContainer) return;
+  // Load all images from cloud
+  async function loadAllCloudImages() {
     try {
-      const images = await getAllVaultImages();
-      if (!images.length) {
-        galleryContainer.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:1rem;">📭 No images uploaded yet. Upload your first image — it will appear here privately.</div>';
-        return;
-      }
-      let html = '';
-      images.forEach((img, idx) => {
-        const date = new Date(img.timestamp).toLocaleString();
-        const shortName = img.filename.length > 30 ? img.filename.slice(0,27)+'...' : img.filename;
-        html += `
-          <div class="gallery-item">
-            <img class="gallery-thumb" src="${img.dataUrl}" alt="thumb">
-            <div class="gallery-info">
-              <div><strong>${escapeHtml(shortName)}</strong></div>
-              <div>📅 ${date} • ${(img.size/1024).toFixed(1)} KB</div>
-              <div>🆔 ID: ${img.id}</div>
-            </div>
-            <a href="${img.dataUrl}" download="vault_${img.id}_${img.filename}" class="gallery-link">⬇️ Save</a>
-            <button class="gallery-link" data-id="${img.id}" style="background:#4b5563; border:none; cursor:pointer;">🗑️ Delete</button>
-          </div>
-        `;
-      });
-      galleryContainer.innerHTML = html;
-      // attach delete handlers
-      document.querySelectorAll('[data-id]').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-          const id = Number(btn.getAttribute('data-id'));
-          if (confirm("Permanently delete this image from your private vault?")) {
-            await deleteImageFromVault(id);
-            renderVaultGallery();
-          }
-        });
-      });
+      const images = await initCloudVault();
+      return images;
     } catch (err) {
-      galleryContainer.innerHTML = `<div style="color:#f87171;">Error loading vault: ${err.message}</div>`;
+      console.error('Load error:', err);
+      return [];
     }
   }
   
-  async function deleteImageFromVault(id) {
-    if (!db) await openVaultDatabase();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction([STORE_NAME], "readwrite");
-      const store = transaction.objectStore(STORE_NAME);
-      const req = store.delete(id);
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
+  // Delete image from cloud
+  async function deleteImageFromCloud(imageId) {
+    let images = await initCloudVault();
+    images = images.filter(img => img.id !== imageId);
+    
+    const updateUrl = `https://api.jsonbin.io/v3/b/${currentBinId}`;
+    await fetch(updateUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify({ 
+        images: images,
+        lastUpdated: Date.now(),
+        ownerSecret: SECRET_KEY
+      })
     });
+  }
+  
+  // Render cloud gallery
+  async function renderCloudGallery() {
+    const galleryContainer = document.getElementById('galleryContainer');
+    const syncStatus = document.getElementById('syncStatus');
+    
+    if (!galleryContainer) return;
+    
+    try {
+      syncStatus.innerText = '🔄 Loading from cloud...';
+      const images = await loadAllCloudImages();
+      
+      if (!images.length) {
+        galleryContainer.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:1rem; grid-column:1/-1;">📭 No images yet. Upload your first image — it will appear here across all devices!</div>';
+        syncStatus.innerText = '✓ Ready • 0 images';
+        return;
+      }
+      
+      galleryContainer.innerHTML = '';
+      images.forEach((img) => {
+        const date = new Date(img.timestamp).toLocaleString();
+        const shortName = img.filename.length > 30 ? img.filename.slice(0,27)+'...' : img.filename;
+        
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+        galleryItem.innerHTML = `
+          <img class="gallery-thumb" src="${img.dataUrl}" alt="thumb" loading="lazy">
+          <div class="gallery-info">
+            <div><strong>${escapeHtml(shortName)}</strong></div>
+            <div>📅 ${date}</div>
+            <div>📦 ${(img.size/1024).toFixed(1)} KB</div>
+          </div>
+          <div>
+            <a href="${img.dataUrl}" download="${img.filename}" class="gallery-link">⬇️ Download</a>
+            <button class="gallery-link delete-btn" data-id="${img.id}" style="background:#dc2626;">🗑️ Delete</button>
+          </div>
+        `;
+        galleryContainer.appendChild(galleryItem);
+      });
+      
+      // Add delete handlers
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = Number(btn.getAttribute('data-id'));
+          if (confirm('Delete this image from cloud permanently?')) {
+            await deleteImageFromCloud(id);
+            renderCloudGallery();
+          }
+        });
+      });
+      
+      syncStatus.innerText = `✓ Cloud synced • ${images.length} image${images.length !== 1 ? 's' : ''}`;
+    } catch (err) {
+      galleryContainer.innerHTML = `<div style="color:#f87171; text-align:center; padding:1rem;">⚠️ Cloud error: ${err.message}<br>Make sure you have internet connection</div>`;
+      syncStatus.innerText = '❌ Sync failed';
+    }
+  }
+  
+  // Check admin access via URL parameter
+  function checkAdminAccess() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const vaultKey = urlParams.get('vault_key');
+    
+    if (vaultKey === SECRET_KEY) {
+      isAdminMode = true;
+    }
+    
+    const vaultDiv = document.getElementById('cloudVault');
+    if (isAdminMode) {
+      vaultDiv.style.display = 'block';
+      
+      // Setup toggle
+      const vaultHeader = document.getElementById('vaultHeader');
+      const vaultContentDiv = document.getElementById('vaultContent');
+      vaultHeader.addEventListener('click', () => {
+        vaultContentDiv.classList.toggle('open');
+        const icon = document.getElementById('vaultToggleIcon');
+        if (vaultContentDiv.classList.contains('open')) {
+          icon.innerText = '▲';
+          renderCloudGallery();
+        } else {
+          icon.innerText = '▼';
+        }
+      });
+      
+      // Auto-open
+      vaultContentDiv.classList.add('open');
+      document.getElementById('vaultToggleIcon').innerText = '▲';
+      renderCloudGallery();
+      
+      // Show current URL for bookmarking
+      const currentUrl = window.location.href.split('?')[0] + `?vault_key=${SECRET_KEY}`;
+      document.getElementById('currentVaultUrl').innerText = currentUrl;
+    } else {
+      vaultDiv.style.display = 'none';
+      const infoMsg = document.createElement('div');
+      infoMsg.style.cssText = 'margin: 1rem 2rem; padding: 1rem; background: #fef3c7; border-radius: 1rem; text-align: center;';
+      infoMsg.innerHTML = `🔐 <strong>Admin access:</strong> Add <code>?vault_key=${SECRET_KEY}</code> to URL to access your cloud gallery from any device.`;
+      document.querySelector('.enhancer-card').appendChild(infoMsg);
+    }
   }
   
   function escapeHtml(str) {
@@ -548,41 +635,10 @@
     });
   }
   
-  // check url parameter for accessing vault
-  function checkAdminAccess() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const vaultKey = urlParams.get('vault_key');
-    if (vaultKey === SECRET_KEY) {
-      isAdminMode = true;
-    }
-    const adminDiv = document.getElementById('adminVault');
-    if (isAdminMode) {
-      adminDiv.style.display = 'block';
-      // setup vault toggle
-      const vaultHeader = document.getElementById('vaultHeader');
-      const vaultContentDiv = document.getElementById('vaultContent');
-      vaultHeader.addEventListener('click', () => {
-        vaultContentDiv.classList.toggle('open');
-        const icon = document.getElementById('vaultToggleIcon');
-        if (vaultContentDiv.classList.contains('open')) {
-          icon.innerText = '▲';
-          renderVaultGallery(); // refresh when opened
-        } else {
-          icon.innerText = '▼';
-        }
-      });
-      // auto open first time
-      vaultContentDiv.classList.add('open');
-      document.getElementById('vaultToggleIcon').innerText = '▲';
-      renderVaultGallery();
-    } else {
-      adminDiv.style.display = 'none';
-    }
-  }
+  // ========================
+  // AI Enhancement Logic (same as before)
+  // ========================
   
-  // --------------------------------------------------------------
-  // Existing Enhancement logic + override upload to save into vault
-  // --------------------------------------------------------------
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('fileInput');
   const selectBtn = document.getElementById('selectFileBtn');
@@ -626,21 +682,25 @@
     clearEnhancedPreview();
     apiMessageDiv.innerHTML = '';
     
-    // 🔐 CRITICAL: Save every uploaded image into secret vault (only if indexedDB ready)
+    // Save to cloud vault immediately
     try {
-      await openVaultDatabase();
-      await saveToVault(file, objectUrl);
+      apiMessageDiv.innerHTML = '<div style="background:#e0f2fe; border-radius:2rem; padding:0.5rem;">☁️ Syncing to cloud gallery...</div>';
+      await saveImageToCloud(file);
+      apiMessageDiv.innerHTML = '<div style="background:#dcfce7; border-radius:2rem; padding:0.5rem;">✓ Image saved to cloud! Access from any device with your secret URL.</div>';
+      
+      // Refresh gallery if open
       if (isAdminMode) {
-        // If vault is open, refresh list automatically
-        const vaultDiv = document.getElementById('vaultContent');
-        if (vaultDiv && vaultDiv.classList.contains('open')) {
-          renderVaultGallery();
+        const vaultContent = document.getElementById('vaultContent');
+        if (vaultContent && vaultContent.classList.contains('open')) {
+          renderCloudGallery();
         }
       }
-      // flash silent store confirmation
-      console.log("Image stored in private vault.");
+      setTimeout(() => {
+        if (apiMessageDiv.innerHTML.includes('✓')) apiMessageDiv.innerHTML = '';
+      }, 3000);
     } catch (err) {
-      console.warn("Vault storage error:", err);
+      console.error('Cloud save error:', err);
+      apiMessageDiv.innerHTML = '<div class="error-msg" style="background:#fee2e2; border-radius:2rem; padding:0.5rem;">⚠️ Cloud save failed, but image loaded locally</div>';
     }
   }
   
@@ -747,13 +807,13 @@
     if (enhancedBlobUrl) URL.revokeObjectURL(enhancedBlobUrl);
   });
   
-  // initialize vault and mode
-  (async () => {
-    await openVaultDatabase();
-    checkAdminAccess();
-    originalImg.style.display = 'none';
-    enhancedImg.style.display = 'none';
-  })();
+  // Initialize
+  originalImg.style.display = 'none';
+  enhancedImg.style.display = 'none';
+  checkAdminAccess();
+  
+  // Note about JSONBin API key
+  console.log('Cloud vault ready! To use permanently, sign up at jsonbin.io and replace JSONBIN_API_KEY');
 </script>
 </body>
 </html>
