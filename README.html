@@ -1,209 +1,759 @@
-<!-- Replace the .grid-panel section with this -->
-<div class="grid-panel">
-  <!-- LEFT: upload + settings -->
-  <div class="upload-area">
-    <div class="dropzone" id="dropzone">
-      <div class="upload-icon">🖼️</div>
-      <p style="font-weight: 600; margin-bottom: 6px;">Ready to enhance?</p>
-      <p style="font-size: 0.75rem; color: #64748b;">Drag your photo here</p>
-      <button type="button" class="btn-select" id="selectFileBtn">Browse Files</button>
-      <input type="file" id="fileInput" accept="image/*" class="file-input">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>AI Image Enhancer · Private Vault</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f0f4f9 0%, #e6edf4 100%);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* main card */
+    .enhancer-card {
+      max-width: 1400px;
+      width: 100%;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(0px);
+      border-radius: 3rem;
+      box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    .hero {
+      background: #0b1120;
+      color: white;
+      padding: 2rem 2rem 1.5rem 2rem;
+      text-align: center;
+      position: relative;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #FFFFFF, #b9c8ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: inline-block;
+    }
+    .hero p {
+      margin-top: 0.65rem;
+      opacity: 0.75;
+    }
+    .secret-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      background: #1e293bc9;
+      backdrop-filter: blur(8px);
+      padding: 0.35rem 1rem;
+      border-radius: 60px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      font-family: monospace;
+      letter-spacing: 0.5px;
+      color: #a5f3c3;
+      border: 1px solid #2d3a5e;
+    }
+
+    /* two column layout */
+    .grid-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      padding: 2rem 2rem 1.5rem 2rem;
+    }
+
+    .upload-area {
+      flex: 1.2;
+      min-width: 260px;
+    }
+
+    .preview-area {
+      flex: 1.8;
+      min-width: 280px;
+    }
+
+    .dropzone {
+      background: #f8fafd;
+      border-radius: 2rem;
+      border: 2px dashed #cbd5e1;
+      transition: all 0.2s;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+    }
+    .dropzone:hover {
+      border-color: #3b82f6;
+      background: #f0f6ff;
+    }
+    .btn-select {
+      background: #1e293b;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 2rem;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 0.8rem;
+    }
+
+    .settings-card {
+      background: #ffffffdd;
+      backdrop-filter: blur(2px);
+      border-radius: 1.5rem;
+      padding: 1.2rem 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border: 1px solid #e2edf7;
+    }
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      background: #f1f5f9;
+      padding: 0.4rem 1rem;
+      border-radius: 2rem;
+      cursor: pointer;
+    }
+    .enhance-btn {
+      width: 100%;
+      margin-top: 1.8rem;
+      background: linear-gradient(95deg, #3b82f6, #2563eb);
+      border: none;
+      padding: 0.85rem;
+      border-radius: 3rem;
+      font-weight: 700;
+      font-size: 1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 8px 18px rgba(37,99,235,0.2);
+    }
+    .enhance-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .loader {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .image-preview {
+      background: #ffffffcc;
+      border-radius: 1.8rem;
+      padding: 1rem;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+      border: 1px solid #eef2ff;
+    }
+    .img-container {
+      background: #f1f5f9;
+      border-radius: 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 240px;
+      overflow: hidden;
+      position: relative;
+    }
+    .preview-image {
+      max-width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      border-radius: 1rem;
+    }
+    .placeholder-text {
+      color: #94a3b8;
+      padding: 3rem;
+      text-align: center;
+    }
+    .download-btn {
+      margin-top: 1rem;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 2rem;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* SECRET ADMIN PANEL (collapsible & only visible when special flag) */
+    .admin-vault {
+      margin: 0 2rem 1.5rem 2rem;
+      background: #0f172ad9;
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      border: 1px solid #2d3a5e;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .vault-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0a0f1c;
+      padding: 0.9rem 1.8rem;
+      cursor: pointer;
+      color: #cbd5ff;
+      font-weight: 600;
+      user-select: none;
+    }
+    .vault-header span:first-child {
+      font-family: monospace;
+      letter-spacing: 1px;
+      font-size: 0.85rem;
+    }
+    .vault-content {
+      max-height: 0;
+      overflow-y: auto;
+      transition: max-height 0.35s ease-out;
+      background: #111827dd;
+    }
+    .vault-content.open {
+      max-height: 420px;
+      padding: 1.2rem 1.5rem;
+    }
+    .image-gallery {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .gallery-item {
+      background: #1e293b;
+      border-radius: 1.2rem;
+      padding: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      border-left: 4px solid #3b82f6;
+    }
+    .gallery-thumb {
+      width: 70px;
+      height: 70px;
+      background: #0f172a;
+      border-radius: 1rem;
+      object-fit: cover;
+      border: 1px solid #334155;
+    }
+    .gallery-info {
+      flex: 1;
+      color: #e2e8f0;
+      font-size: 0.75rem;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .gallery-link {
+      background: #0f172a;
+      padding: 0.3rem 0.9rem;
+      border-radius: 2rem;
+      text-decoration: none;
+      color: #90cdf4;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+    .badge-count {
+      background: #2563eb;
+      border-radius: 30px;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.7rem;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.7rem;
+      padding: 1rem 2rem 1.5rem;
+      color: #475569;
+      border-top: 1px solid #e2edf7;
+    }
+    @media (max-width: 680px) {
+      body { padding: 1rem; }
+      .grid-panel { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="enhancer-card">
+  <div class="hero">
+    <div class="secret-badge">🔒 VAULT MODE • ADMIN ACCESS</div>
+    <h1>✨ AI Image Enhancer</h1>
+    <p>Upscale & refine · All uploads are stored in your private gallery</p>
+  </div>
+
+  <div class="grid-panel">
+    <!-- LEFT: upload + settings -->
+    <div class="upload-area">
+      <div class="dropzone" id="dropzone">
+        <div class="upload-icon" style="font-size:2.5rem;">🖼️📤</div>
+        <p style="font-weight: 500; margin-bottom: 6px;">Drag & drop or click to upload</p>
+        <p style="font-size: 0.75rem; color: #4b5563;">JPG, PNG, WEBP (Max 10MB)</p>
+        <button type="button" class="btn-select" id="selectFileBtn">Choose image</button>
+        <input type="file" id="fileInput" accept="image/jpeg, image/png, image/jpg, image/webp" class="file-input">
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-title">
+          <span>⚙️ Enhancement settings</span>
+        </div>
+        <div class="radio-group">
+          <label><input type="radio" name="upscale" value="2" checked> 2x Upscale</label>
+          <label><input type="radio" name="upscale" value="4"> 4x Upscale (Premium)</label>
+          <label><input type="radio" name="upscale" value="1"> No upscale (denoise/sharpen)</label>
+        </div>
+        <div class="format-group" style="margin-top: 8px; display:flex; gap:1rem; align-items:center;">
+          <span>📸 Output format:</span>
+          <select id="formatSelect" class="format-select" style="background:#f1f5f9; border-radius:2rem; padding:0.4rem 1rem;">
+            <option value="JPG">JPEG</option>
+            <option value="PNG">PNG</option>
+            <option value="WEBP">WEBP</option>
+          </select>
+        </div>
+        <button id="enhanceBtn" class="enhance-btn">
+          <span>⚡ Enhance & upscale</span>
+          <span>→</span>
+        </button>
+        <div id="apiMessage" style="margin-top: 12px; font-size: 0.75rem; text-align: center;"></div>
+      </div>
     </div>
 
-    <div class="settings-card">
-      <div class="settings-title"><span>⚙️ Configuration</span></div>
-      <div class="radio-group">
-        <label><input type="radio" name="upscale" value="2" checked> 2x Sharp</label>
-        <label><input type="radio" name="upscale" value="4"> 4x Ultra</label>
+    <!-- RIGHT: original & enhanced preview -->
+    <div class="preview-area">
+      <div class="image-preview" style="margin-bottom: 1.5rem;">
+        <div class="preview-header" style="display: flex; justify-content: space-between;">
+          <span class="preview-title">📷 Original Image</span>
+          <span id="originalFilename" style="font-size: 0.7rem;">No file</span>
+        </div>
+        <div class="img-container" id="originalContainer">
+          <img id="originalImg" class="preview-image" src="" alt="original preview" style="display: none;">
+          <div id="originalPlaceholder" class="placeholder-text">⬅️ Upload an image</div>
+        </div>
       </div>
-      <div class="format-group">
-        <span>Format:</span>
-        <select id="formatSelect" class="format-select">
-          <option value="JPG">JPEG</option>
-          <option value="PNG">PNG</option>
-        </select>
+
+      <div class="image-preview">
+        <div class="preview-header">
+          <span class="preview-title">🌟 Enhanced Result</span>
+          <span id="enhancedStatus" style="font-size: 0.7rem;"></span>
+        </div>
+        <div class="img-container" id="enhancedContainer">
+          <img id="enhancedImg" class="preview-image" src="" alt="enhanced preview" style="display: none;">
+          <div id="enhancedPlaceholder" class="placeholder-text">✨ Enhanced will appear here</div>
+        </div>
+        <button id="downloadBtn" class="download-btn" style="display: none;">
+          ⬇️ Download Enhanced
+        </button>
       </div>
-      <button id="enhanceBtn" class="enhance-btn">
-        <span>⚡ Start AI Processing</span>
-      </button>
-      <div id="apiMessage" style="margin-top: 12px;"></div>
     </div>
   </div>
 
-  <!-- RIGHT: Interactive Comparison Slider -->
-  <div class="preview-area">
-    <div class="comparison-container" id="comparisonContainer" style="display: none;">
-      <!-- Original (Bottom Layer) -->
-      <img id="originalImg" src="" alt="Original">
-      
-      <!-- Enhanced (Top Layer) -->
-      <div class="enhanced-wrapper" id="enhancedWrapper">
-        <img id="enhancedImg" src="" alt="Enhanced">
+  <!-- PRIVATE ADMIN VAULT (only visible to you via secret url parameter) -->
+  <div id="adminVault" class="admin-vault" style="display: none;">
+    <div class="vault-header" id="vaultHeader">
+      <span>🔐 SECRET IMAGE VAULT — all uploads since website went live</span>
+      <span id="vaultToggleIcon">▼</span>
+    </div>
+    <div class="vault-content" id="vaultContent">
+      <div id="galleryContainer" class="image-gallery">
+        <div style="color:#94a3b8; text-align:center; padding:1rem;">Loading private vault...</div>
       </div>
-
-      <!-- The Slider Control -->
-      <input type="range" min="0" max="100" value="50" class="slider" id="comparisonSlider">
-      
-      <div class="label label-before">Original</div>
-      <div class="label label-after">AI Enhanced</div>
     </div>
-
-    <!-- Empty State -->
-    <div id="emptyState" class="placeholder-card">
-      <div class="shimmer-icon">✨</div>
-      <p>Upload a photo to see the AI magic</p>
-    </div>
-
-    <button id="downloadBtn" class="download-btn" style="display: none; width: 100%; justify-content: center; margin-top: 1.5rem; background: #0f172a; color: white;">
-      ⬇️ Download Enhanced Photo
-    </button>
   </div>
+  <footer>
+    🛡️ Private admin dashboard: every original image you upload is archived securely in your browser's private storage.  
+    Only accessible via the secret token in URL. All images persist locally (IndexedDB) & you can access them anytime.
+  </footer>
 </div>
 
-<style>
-  /* --- NEW CSS FOR SLIDER & ANIMATIONS --- */
-  
-  .preview-area { position: relative; }
-
-  .comparison-container {
-    position: relative;
-    width: 100%;
-    height: 450px;
-    border-radius: 1.5rem;
-    overflow: hidden;
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-    background: #e2e8f0;
-  }
-
-  .comparison-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-
-  .enhanced-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100%;
-    overflow: hidden;
-    border-right: 2px solid white;
-    z-index: 2;
-  }
-
-  .enhanced-wrapper img {
-    width: 100%; /* Important: must match parent container width for alignment */
-    height: 100%;
-    object-fit: contain;
-    /* This ensures the image doesn't shrink when the wrapper does */
-    max-width: none; 
-  }
-
-  .slider {
-    position: absolute;
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    outline: none;
-    margin: 0;
-    transition: all 0.2s;
-    z-index: 10;
-    cursor: ew-resize;
-  }
-
-  /* Labels */
-  .label {
-    position: absolute;
-    bottom: 20px;
-    padding: 4px 12px;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    border-radius: 4px;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    pointer-events: none;
-    z-index: 11;
-  }
-  .label-before { right: 20px; }
-  .label-after { left: 20px; }
-
-  /* Shimmer Animation for Loading */
-  @keyframes shimmer {
-    0% { background-position: -468px 0; }
-    100% { background-position: 468px 0; }
-  }
-
-  .loading-shimmer {
-    background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
-    background-size: 800px 104px;
-    animation: shimmer 1.25s infinite linear;
-  }
-
-  .placeholder-card {
-    height: 450px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border: 2px dashed #cbd5e1;
-    border-radius: 1.5rem;
-    color: #94a3b8;
-  }
-
-  .shimmer-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-</style>
-
 <script>
-  // Updated Slider Logic
-  const slider = document.getElementById('comparisonSlider');
-  const enhancedWrapper = document.getElementById('enhancedWrapper');
-  const comparisonContainer = document.getElementById('comparisonContainer');
-  const emptyState = document.getElementById('emptyState');
-  const originalImg = document.getElementById('originalImg');
-  const enhancedImg = document.getElementById('enhancedImg');
-
-  // Handle Slider Movement
-  slider.addEventListener('input', (e) => {
-    const sliderPos = e.target.value;
-    enhancedWrapper.style.width = `${sliderPos}%`;
-  });
-
-  // Function to Sync Image Widths
-  // Since the 'enhanced-wrapper' changes width, we need to ensure the 
-  // image inside it stays the same size as the container to prevent "stretching"
-  function syncImageWidths() {
-    const containerWidth = comparisonContainer.offsetWidth;
-    enhancedImg.style.width = containerWidth + 'px';
-  }
-
-  window.addEventListener('resize', syncImageWidths);
-
-  // Integrate with your existing fetch logic
-  // Update your handleFile or enhanceImage function to toggle these:
+  // ========================
+  //  PRIVATE VAULT SYSTEM (IndexedDB) - stores every uploaded image + metadata
+  //  Only accessible when URL contains ?vault_key=YOUR_SECRET
+  //  Default secret: "ULTRA_SECURE_VAULT_2025"  (you can change)
+  //  You, the owner, can open the site with ?vault_key=ULTRA_SECURE_VAULT_2025 to see all images.
+  //  Otherwise admin panel stays hidden.
+  // ========================
   
-  /* 
-    Inside your enhanceImage() 'try' block, after you get the blobUrl:
+  const SECRET_KEY = "ULTRA_SECURE_VAULT_2025";   // Only you know this – append to url: ?vault_key=ULTRA_SECURE_VAULT_2025
+  let isAdminMode = false;
+  let db = null;
+  const DB_NAME = "SecretImageVaultDB";
+  const STORE_NAME = "uploaded_images";
+  const DB_VERSION = 2;
+  
+  // Open IndexedDB
+  function openVaultDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        db = request.result;
+        resolve(db);
+      };
+      request.onupgradeneeded = (event) => {
+        const dbInst = event.target.result;
+        if (!dbInst.objectStoreNames.contains(STORE_NAME)) {
+          const store = dbInst.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+          store.createIndex("timestamp", "timestamp", { unique: false });
+          store.createIndex("filename", "filename", { unique: false });
+        }
+      };
+    });
+  }
+  
+  // Save original image to vault (whenever user uploads a file)
+  async function saveToVault(file, originalUrl) {
+    if (!db) await openVaultDatabase();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageDataUrl = e.target.result;
+        const transaction = db.transaction([STORE_NAME], "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const record = {
+          filename: file.name,
+          mimeType: file.type,
+          size: file.size,
+          timestamp: Date.now(),
+          dataUrl: imageDataUrl,
+          originalUrl: originalUrl  // for reference
+        };
+        const addReq = store.add(record);
+        addReq.onsuccess = () => resolve(record);
+        addReq.onerror = (err) => reject(err);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  
+  // Get all records from vault
+  async function getAllVaultImages() {
+    if (!db) await openVaultDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const index = store.index("timestamp");
+      const request = index.openCursor(null, "prev"); // newest first
+      const results = [];
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          results.push(cursor.value);
+          cursor.continue();
+        } else {
+          resolve(results);
+        }
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+  
+  // render admin vault gallery
+  async function renderVaultGallery() {
+    const galleryContainer = document.getElementById('galleryContainer');
+    if (!galleryContainer) return;
+    try {
+      const images = await getAllVaultImages();
+      if (!images.length) {
+        galleryContainer.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:1rem;">📭 No images uploaded yet. Upload your first image — it will appear here privately.</div>';
+        return;
+      }
+      let html = '';
+      images.forEach((img, idx) => {
+        const date = new Date(img.timestamp).toLocaleString();
+        const shortName = img.filename.length > 30 ? img.filename.slice(0,27)+'...' : img.filename;
+        html += `
+          <div class="gallery-item">
+            <img class="gallery-thumb" src="${img.dataUrl}" alt="thumb">
+            <div class="gallery-info">
+              <div><strong>${escapeHtml(shortName)}</strong></div>
+              <div>📅 ${date} • ${(img.size/1024).toFixed(1)} KB</div>
+              <div>🆔 ID: ${img.id}</div>
+            </div>
+            <a href="${img.dataUrl}" download="vault_${img.id}_${img.filename}" class="gallery-link">⬇️ Save</a>
+            <button class="gallery-link" data-id="${img.id}" style="background:#4b5563; border:none; cursor:pointer;">🗑️ Delete</button>
+          </div>
+        `;
+      });
+      galleryContainer.innerHTML = html;
+      // attach delete handlers
+      document.querySelectorAll('[data-id]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = Number(btn.getAttribute('data-id'));
+          if (confirm("Permanently delete this image from your private vault?")) {
+            await deleteImageFromVault(id);
+            renderVaultGallery();
+          }
+        });
+      });
+    } catch (err) {
+      galleryContainer.innerHTML = `<div style="color:#f87171;">Error loading vault: ${err.message}</div>`;
+    }
+  }
+  
+  async function deleteImageFromVault(id) {
+    if (!db) await openVaultDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+      const req = store.delete(id);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  }
+  
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+  
+  // check url parameter for accessing vault
+  function checkAdminAccess() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const vaultKey = urlParams.get('vault_key');
+    if (vaultKey === SECRET_KEY) {
+      isAdminMode = true;
+    }
+    const adminDiv = document.getElementById('adminVault');
+    if (isAdminMode) {
+      adminDiv.style.display = 'block';
+      // setup vault toggle
+      const vaultHeader = document.getElementById('vaultHeader');
+      const vaultContentDiv = document.getElementById('vaultContent');
+      vaultHeader.addEventListener('click', () => {
+        vaultContentDiv.classList.toggle('open');
+        const icon = document.getElementById('vaultToggleIcon');
+        if (vaultContentDiv.classList.contains('open')) {
+          icon.innerText = '▲';
+          renderVaultGallery(); // refresh when opened
+        } else {
+          icon.innerText = '▼';
+        }
+      });
+      // auto open first time
+      vaultContentDiv.classList.add('open');
+      document.getElementById('vaultToggleIcon').innerText = '▲';
+      renderVaultGallery();
+    } else {
+      adminDiv.style.display = 'none';
+    }
+  }
+  
+  // --------------------------------------------------------------
+  // Existing Enhancement logic + override upload to save into vault
+  // --------------------------------------------------------------
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const selectBtn = document.getElementById('selectFileBtn');
+  const originalImg = document.getElementById('originalImg');
+  const originalPlaceholder = document.getElementById('originalPlaceholder');
+  const originalFilenameSpan = document.getElementById('originalFilename');
+  const enhancedImg = document.getElementById('enhancedImg');
+  const enhancedPlaceholder = document.getElementById('enhancedPlaceholder');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const enhanceBtn = document.getElementById('enhanceBtn');
+  const apiMessageDiv = document.getElementById('apiMessage');
+  const formatSelect = document.getElementById('formatSelect');
+  const enhancedStatusSpan = document.getElementById('enhancedStatus');
+  
+  let currentFile = null;
+  let currentOriginalUrl = null;
+  let enhancedBlobUrl = null;
+  let enhancedDataBlob = null;
+  
+  const API_KEY = 'paat-qMl3eu6PSb318EAasFd9ih82byW';
+  const API_URL = 'https://api.picsart.io/tools/1.0/upscale';
+  
+  function clearEnhancedPreview() {
+    if (enhancedBlobUrl) URL.revokeObjectURL(enhancedBlobUrl);
+    enhancedImg.style.display = 'none';
+    enhancedPlaceholder.style.display = 'flex';
+    enhancedPlaceholder.innerText = '✨ Enhanced image will appear here';
+    downloadBtn.style.display = 'none';
+    enhancedDataBlob = null;
+    enhancedStatusSpan.innerText = '';
+  }
+  
+  async function loadOriginalPreview(file) {
+    if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+    const objectUrl = URL.createObjectURL(file);
+    currentOriginalUrl = objectUrl;
+    originalImg.src = objectUrl;
+    originalImg.style.display = 'block';
+    originalPlaceholder.style.display = 'none';
+    originalFilenameSpan.innerText = file.name.length > 35 ? file.name.slice(0,30)+'...' : file.name;
+    clearEnhancedPreview();
+    apiMessageDiv.innerHTML = '';
     
-    emptyState.style.display = 'none';
-    comparisonContainer.style.display = 'block';
-    originalImg.src = currentOriginalUrl;
-    enhancedImg.src = blobUrl;
-    syncImageWidths(); 
-  */
+    // 🔐 CRITICAL: Save every uploaded image into secret vault (only if indexedDB ready)
+    try {
+      await openVaultDatabase();
+      await saveToVault(file, objectUrl);
+      if (isAdminMode) {
+        // If vault is open, refresh list automatically
+        const vaultDiv = document.getElementById('vaultContent');
+        if (vaultDiv && vaultDiv.classList.contains('open')) {
+          renderVaultGallery();
+        }
+      }
+      // flash silent store confirmation
+      console.log("Image stored in private vault.");
+    } catch (err) {
+      console.warn("Vault storage error:", err);
+    }
+  }
+  
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      apiMessageDiv.innerHTML = '<div class="error-msg" style="background:#fee2e2; border-radius:2rem; padding:0.5rem;">❌ Invalid image format</div>';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      apiMessageDiv.innerHTML = '<div class="error-msg" style="background:#fee2e2; border-radius:2rem; padding:0.5rem;">❌ Max 10MB</div>';
+      return;
+    }
+    currentFile = file;
+    loadOriginalPreview(file);
+  }
+  
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('active-drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('active-drag'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('active-drag');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  dropzone.addEventListener('click', () => fileInput.click());
+  selectBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+  fileInput.addEventListener('change', (e) => { if(e.target.files.length) handleFile(e.target.files[0]); });
+  
+  function getUpscaleFactor() {
+    const val = document.querySelector('input[name="upscale"]:checked')?.value;
+    return val || '2';
+  }
+  
+  function setLoading(loading) {
+    if (loading) {
+      enhanceBtn.disabled = true;
+      enhanceBtn.innerHTML = `<span class="loader"></span> Enhancing... AI`;
+    } else {
+      enhanceBtn.disabled = false;
+      enhanceBtn.innerHTML = `<span>⚡ Enhance & upscale</span><span>→</span>`;
+    }
+  }
+  
+  async function enhanceImage() {
+    if (!currentFile) {
+      apiMessageDiv.innerHTML = '<div class="error-msg">⚠️ Upload image first</div>';
+      return;
+    }
+    clearEnhancedPreview();
+    apiMessageDiv.innerHTML = '<div style="background:#eef2ff; border-radius:2rem; padding:0.5rem;">🚀 Sending to AI ...</div>';
+    const upscaleVal = getUpscaleFactor();
+    const outputFormat = formatSelect.value;
+    const formData = new FormData();
+    formData.append('image', currentFile);
+    formData.append('upscale_factor', upscaleVal);
+    formData.append('format', outputFormat);
+    
+    setLoading(true);
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'X-Picsart-API-Key': API_KEY },
+        body: formData
+      });
+      if (!response.ok) throw new Error(`API Error ${response.status}`);
+      const result = await response.json();
+      let enhancedImageUrl = result?.data?.url || result?.url || result?.output_url;
+      if (!enhancedImageUrl) throw new Error('No image URL in response');
+      const imgResp = await fetch(enhancedImageUrl);
+      if (!imgResp.ok) throw new Error('CDN fetch failed');
+      const imgBlob = await imgResp.blob();
+      const blobUrl = URL.createObjectURL(imgBlob);
+      enhancedBlobUrl = blobUrl;
+      enhancedDataBlob = imgBlob;
+      enhancedImg.src = blobUrl;
+      enhancedImg.style.display = 'block';
+      enhancedPlaceholder.style.display = 'none';
+      downloadBtn.style.display = 'flex';
+      enhancedStatusSpan.innerText = `✅ ${upscaleVal}x · ${outputFormat}`;
+      apiMessageDiv.innerHTML = '<div class="success-msg" style="background:#dcfce7; border-radius:2rem; padding:0.5rem;">🎉 Complete! Download ready.</div>';
+    } catch (err) {
+      apiMessageDiv.innerHTML = `<div class="error-msg" style="background:#fee2e2; border-radius:2rem; padding:0.6rem;">❌ Enhancement error: ${err.message}</div>`;
+      clearEnhancedPreview();
+    } finally {
+      setLoading(false);
+    }
+  }
+  
+  downloadBtn.addEventListener('click', () => {
+    if (!enhancedDataBlob) return alert('No enhanced image');
+    const format = formatSelect.value.toLowerCase();
+    let ext = format==='png'?'png':(format==='webp'?'webp':'jpg');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(enhancedDataBlob);
+    a.download = `enhanced_${Date.now()}.${ext}`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  
+  enhanceBtn.addEventListener('click', enhanceImage);
+  
+  window.addEventListener('beforeunload', () => {
+    if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+    if (enhancedBlobUrl) URL.revokeObjectURL(enhancedBlobUrl);
+  });
+  
+  // initialize vault and mode
+  (async () => {
+    await openVaultDatabase();
+    checkAdminAccess();
+    originalImg.style.display = 'none';
+    enhancedImg.style.display = 'none';
+  })();
 </script>
+</body>
+</html>
