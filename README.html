@@ -1,120 +1,653 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Gemini 4K | 2026 Pro Enhancer</title>
-    <style>
-        :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
-        body { background: var(--bg); color: var(--text); font-family: system-ui; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { width: 90%; max-width: 800px; background: var(--card); padding: 2rem; border-radius: 20px; text-align: center; }
-        .upload-box { border: 2px dashed #475569; padding: 3rem; border-radius: 15px; cursor: pointer; }
-        #loading { display: none; margin: 20px; }
-        .slider-container { position: relative; width: 100%; display: none; border-radius: 10px; overflow: hidden; }
-        .img { width: 100%; display: block; }
-        #after-wrap { position: absolute; top: 0; left: 0; width: 50%; height: 100%; overflow: hidden; border-right: 3px solid var(--primary); z-index: 2; }
-        .slider-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; -webkit-appearance: none; background: transparent; cursor: ew-resize; z-index: 10; }
-        .btn { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 1rem; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>AI Image Enhancer | Upscale & Sharpen</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f6f9fc 0%, #eef2f5 100%);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* main card */
+    .enhancer-card {
+      max-width: 1280px;
+      width: 100%;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(0px);
+      border-radius: 3rem;
+      box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.05);
+      overflow: hidden;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+
+    /* header */
+    .hero {
+      background: #0b1120;
+      color: white;
+      padding: 2rem 2rem 1.8rem 2rem;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #FFFFFF, #b9c8ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: inline-block;
+    }
+    .hero p {
+      margin-top: 0.65rem;
+      opacity: 0.75;
+      font-weight: 450;
+      font-size: 1rem;
+    }
+    .badge {
+      display: inline-block;
+      background: #2d3748;
+      padding: 0.2rem 0.9rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-top: 1rem;
+      color: #cbd5ff;
+    }
+
+    /* two column layout */
+    .grid-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      padding: 2rem 2rem 2rem 2rem;
+    }
+
+    .upload-area {
+      flex: 1.2;
+      min-width: 260px;
+    }
+
+    .preview-area {
+      flex: 1.8;
+      min-width: 280px;
+    }
+
+    /* upload box */
+    .dropzone {
+      background: #f8fafd;
+      border-radius: 2rem;
+      border: 2px dashed #cbd5e1;
+      transition: all 0.2s;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+    }
+    .dropzone:hover {
+      border-color: #3b82f6;
+      background: #f0f6ff;
+    }
+    .dropzone.active-drag {
+      background: #e9f2fe;
+      border-color: #2563eb;
+    }
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+    }
+    .file-input {
+      display: none;
+    }
+    .btn-select {
+      background: #1e293b;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 2rem;
+      font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 0.8rem;
+    }
+    .btn-select:hover {
+      background: #0f172a;
+      transform: scale(0.98);
+    }
+
+    /* settings */
+    .settings-card {
+      background: #ffffffdd;
+      backdrop-filter: blur(2px);
+      border-radius: 1.5rem;
+      padding: 1.2rem 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      border: 1px solid #e2edf7;
+    }
+    .settings-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #0f172a;
+    }
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      background: #f1f5f9;
+      padding: 0.4rem 1rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .radio-group input {
+      accent-color: #3b82f6;
+      width: 1rem;
+      height: 1rem;
+    }
+    .format-group {
+      margin-top: 0.2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .format-group span {
+      font-weight: 500;
+      color: #334155;
+    }
+    .format-select {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 2rem;
+      padding: 0.4rem 1rem;
+      font-weight: 500;
+    }
+    .enhance-btn {
+      width: 100%;
+      margin-top: 1.8rem;
+      background: linear-gradient(95deg, #3b82f6, #2563eb);
+      border: none;
+      padding: 0.85rem;
+      border-radius: 3rem;
+      font-weight: 700;
+      font-size: 1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 8px 18px rgba(37,99,235,0.2);
+    }
+    .enhance-btn:disabled {
+      opacity: 0.6;
+      transform: none;
+      cursor: not-allowed;
+      filter: grayscale(0.1);
+    }
+    .enhance-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    .loader {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* preview cards */
+    .image-preview {
+      background: #ffffffcc;
+      border-radius: 1.8rem;
+      padding: 1rem;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+      border: 1px solid #eef2ff;
+    }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      padding: 0 0.2rem;
+    }
+    .preview-title {
+      font-weight: 600;
+      background: #eef2ff;
+      padding: 0.2rem 1rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+    }
+    .img-container {
+      background: #f1f5f9;
+      border-radius: 1.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 240px;
+      overflow: hidden;
+      position: relative;
+    }
+    .preview-image {
+      max-width: 100%;
+      max-height: 360px;
+      object-fit: contain;
+      border-radius: 1rem;
+      transition: 0.2s;
+    }
+    .placeholder-text {
+      color: #94a3b8;
+      padding: 3rem;
+      text-align: center;
+      font-weight: 500;
+    }
+    .download-btn {
+      margin-top: 1rem;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 2rem;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.1s;
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+    .download-btn:hover {
+      background: #e2e8f0;
+    }
+    .error-msg {
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 0.8rem;
+      border-radius: 2rem;
+      font-size: 0.8rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .success-msg {
+      background: #dcfce7;
+      color: #15803d;
+    }
+    footer {
+      text-align: center;
+      font-size: 0.7rem;
+      padding: 1rem 2rem 1.5rem;
+      color: #475569;
+      border-top: 1px solid #e2edf7;
+    }
+    @media (max-width: 680px) {
+      body { padding: 1rem; }
+      .grid-panel { padding: 1.2rem; gap: 1.2rem; }
+      .hero h1 { font-size: 1.6rem; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Gemini<span>4K</span> Nano</h1>
-    <div id="upload-area" class="upload-box" onclick="document.getElementById('file-input').click()">
-        <input type="file" id="file-input" hidden accept="image/*">
-        <p>Drop image to upscale using Nano Banana 2</p>
+<div class="enhancer-card">
+  <div class="hero">
+    <h1>✨ AI Image Enhancer</h1>
+    <p>Upscale & refine with neural super-resolution</p>
+    <div class="badge">Picsart AI • up to 4X quality</div>
+  </div>
+
+  <div class="grid-panel">
+    <!-- LEFT: upload + settings -->
+    <div class="upload-area">
+      <div class="dropzone" id="dropzone">
+        <div class="upload-icon">🖼️📤</div>
+        <p style="font-weight: 500; margin-bottom: 6px;">Drag & drop or click to upload</p>
+        <p style="font-size: 0.75rem; color: #4b5563;">JPG, PNG, WEBP (Max 10MB)</p>
+        <button type="button" class="btn-select" id="selectFileBtn">Choose image</button>
+        <input type="file" id="fileInput" accept="image/jpeg, image/png, image/jpg, image/webp" class="file-input">
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-title">
+          <span>⚙️ Enhancement settings</span>
+        </div>
+        <div class="radio-group">
+          <label><input type="radio" name="upscale" value="2" checked> 2x Upscale</label>
+          <label><input type="radio" name="upscale" value="4"> 4x Upscale (Premium)</label>
+          <label><input type="radio" name="upscale" value="1"> No upscale (denoise/sharpen)</label>
+        </div>
+        <div class="format-group">
+          <span>📸 Output format:</span>
+          <select id="formatSelect" class="format-select">
+            <option value="JPG">JPEG (compressed)</option>
+            <option value="PNG">PNG (lossless)</option>
+            <option value="WEBP">WEBP (efficient)</option>
+          </select>
+        </div>
+        <button id="enhanceBtn" class="enhance-btn">
+          <span>⚡ Enhance & upscale</span>
+          <span>→</span>
+        </button>
+        <div id="apiMessage" style="margin-top: 12px; font-size: 0.75rem; text-align: center;"></div>
+      </div>
     </div>
 
-    <div id="loading">
-        <p>🔄 Gemini is rebuilding the pixels...</p>
-    </div>
+    <!-- RIGHT: original & enhanced preview -->
+    <div class="preview-area">
+      <div class="image-preview" style="margin-bottom: 1.5rem;">
+        <div class="preview-header">
+          <span class="preview-title">📷 Original Image</span>
+          <span id="originalFilename" style="font-size: 0.7rem; color: #4b5563;">No file selected</span>
+        </div>
+        <div class="img-container" id="originalContainer">
+          <img id="originalImg" class="preview-image" src="" alt="original preview" style="display: none;">
+          <div id="originalPlaceholder" class="placeholder-text">⬅️ Upload an image to begin</div>
+        </div>
+      </div>
 
-    <div id="result-area" class="slider-container">
-        <img id="img-before" class="img">
-        <div id="after-wrap"><img id="img-after" class="img"></div>
-        <input type="range" min="0" max="100" value="50" class="slider-input" oninput="document.getElementById('after-wrap').style.width = this.value + '%'">
-        <button class="btn" onclick="location.reload()">Start New</button>
+      <div class="image-preview">
+        <div class="preview-header">
+          <span class="preview-title">🌟 Enhanced Result (AI)</span>
+          <span id="enhancedStatus" style="font-size: 0.7rem; color: #2c6e2f;"></span>
+        </div>
+        <div class="img-container" id="enhancedContainer">
+          <img id="enhancedImg" class="preview-image" src="" alt="enhanced preview" style="display: none;">
+          <div id="enhancedPlaceholder" class="placeholder-text">✨ Enhanced image will appear here</div>
+        </div>
+        <button id="downloadBtn" class="download-btn" style="display: none;">
+          ⬇️ Download Enhanced Image
+        </button>
+      </div>
     </div>
+  </div>
+  <footer>
+    ⚡ Uses Picsart AI Upscale API. For best results use high‑quality photos. 4x may increase processing time.
+  </footer>
 </div>
 
-<script type="module">
-    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+<script>
+  // DOM elements
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const selectBtn = document.getElementById('selectFileBtn');
+  const originalImg = document.getElementById('originalImg');
+  const originalPlaceholder = document.getElementById('originalPlaceholder');
+  const originalFilenameSpan = document.getElementById('originalFilename');
+  const enhancedImg = document.getElementById('enhancedImg');
+  const enhancedPlaceholder = document.getElementById('enhancedPlaceholder');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const enhanceBtn = document.getElementById('enhanceBtn');
+  const apiMessageDiv = document.getElementById('apiMessage');
+  const formatSelect = document.getElementById('formatSelect');
+  const enhancedStatusSpan = document.getElementById('enhancedStatus');
 
-    // 1. PLACE YOUR KEY HERE
-    const API_KEY = "AIzaSyC4vK5cdkvqbbXbS6h0kZqD1CN2iM-tla8"; 
-    const genAI = new GoogleGenerativeAI(API_KEY);
+  // current selected file (Blob/File)
+  let currentFile = null;
+  let currentOriginalUrl = null;
+  let enhancedBlobUrl = null;        // stored object URL for enhanced result
+  let enhancedDataBlob = null;        // actual blob for download
 
-    const fileInput = document.getElementById('file-input');
-    const loading = document.getElementById('loading');
-    const resultArea = document.getElementById('result-area');
-    const imgBefore = document.getElementById('img-before');
-    const imgAfter = document.getElementById('img-after');
+  // API key (working as per user snippet, but keep secure note)
+  // In real production, better to proxy; but for demo using provided key.
+  const API_KEY = 'paat-qMl3eu6PSb318EAasFd9ih82byW';
+  const API_URL = 'https://api.picsart.io/tools/1.0/upscale';
 
-    fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+  // Helper: clear enhanced preview
+  function clearEnhancedPreview() {
+    if (enhancedBlobUrl) {
+      URL.revokeObjectURL(enhancedBlobUrl);
+      enhancedBlobUrl = null;
+    }
+    enhancedImg.style.display = 'none';
+    enhancedPlaceholder.style.display = 'flex';
+    enhancedPlaceholder.innerText = '✨ Enhanced image will appear here';
+    downloadBtn.style.display = 'none';
+    enhancedDataBlob = null;
+    enhancedStatusSpan.innerText = '';
+  }
 
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-            document.getElementById('upload-area').style.display = 'none';
-            loading.style.display = 'block';
-            imgBefore.src = reader.result;
+  // Load original preview from file
+  function loadOriginalPreview(file) {
+    if (currentOriginalUrl) {
+      URL.revokeObjectURL(currentOriginalUrl);
+    }
+    const objectUrl = URL.createObjectURL(file);
+    currentOriginalUrl = objectUrl;
+    originalImg.src = objectUrl;
+    originalImg.style.display = 'block';
+    originalPlaceholder.style.display = 'none';
+    originalFilenameSpan.innerText = file.name.length > 35 ? file.name.slice(0, 30)+'...' : file.name;
+    // clear previous enhanced on new upload
+    clearEnhancedPreview();
+    apiMessageDiv.innerHTML = '';
+  }
 
-            try {
-                // 2. Use the exact 2026 Model ID
-                const model = genAI.getGenerativeModel({ 
-                    model: "gemini-3.1-flash-image-preview" 
-                });
-                
-                const base64Data = reader.result.split(',')[1];
-                
-                // 3. Request both Text and Image modalities
-                const result = await model.generateContent({
-                    contents: [{
-                        parts: [
-                            { text: "Enhance this image to 4K resolution. Remove noise and sharpen details while keeping the subject identical." },
-                            { inlineData: { data: base64Data, mimeType: file.type } }
-                        ]
-                    }],
-                    generationConfig: {
-                        // Crucial: Tells Gemini to return an image, not just a description
-                        response_modalities: ["IMAGE"] 
-                    }
-                });
+  // handle file from input or drop
+  function handleFile(file) {
+    if (!file) return;
+    // simple validation: image and size (10MB)
+    if (!file.type.startsWith('image/')) {
+      apiMessageDiv.innerHTML = '<div class="error-msg">❌ Please select a valid image file (JPG, PNG, WEBP).</div>';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      apiMessageDiv.innerHTML = '<div class="error-msg">❌ File exceeds 10MB limit. Please compress or choose smaller image.</div>';
+      return;
+    }
+    currentFile = file;
+    loadOriginalPreview(file);
+    apiMessageDiv.innerHTML = ''; // clear errors
+  }
 
-                const response = await result.response;
-                
-                // 4. Extract the generated image from the response parts
-                const imagePart = response.candidates[0].content.parts.find(part => part.inlineData);
+  // drag & drop handlers
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('active-drag');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('active-drag');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('active-drag');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFile(files[0]);
+    }
+  });
+  dropzone.addEventListener('click', () => {
+    fileInput.click();
+  });
+  selectBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.click();
+  });
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleFile(e.target.files[0]);
+    }
+  });
 
-                if (imagePart) {
-                    imgAfter.src = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
-                    loading.style.display = 'none';
-                    resultArea.style.display = 'block';
-                } else {
-                    throw new Error("Gemini analyzed the photo but didn't generate an image part.");
-                }
+  // get selected upscale factor (value string: '1','2','4')
+  function getUpscaleFactor() {
+    const radios = document.querySelectorAll('input[name="upscale"]');
+    for (let radio of radios) {
+      if (radio.checked) return radio.value;
+    }
+    return '2';
+  }
 
-            } catch (err) {
-                console.error("Gemini Error:", err);
-                alert("Failed to enhance: " + err.message);
-                location.reload();
-            }
-        };
+  // Show loading state on enhance button
+  function setLoading(isLoading) {
+    if (isLoading) {
+      enhanceBtn.disabled = true;
+      enhanceBtn.innerHTML = `<span class="loader"></span> Enhancing... AI processing`;
+    } else {
+      enhanceBtn.disabled = false;
+      enhanceBtn.innerHTML = `<span>⚡ Enhance & upscale</span><span>→</span>`;
+    }
+  }
+
+  // Main enhancement call using picsart API (multipart/form-data)
+  async function enhanceImage() {
+    if (!currentFile) {
+      apiMessageDiv.innerHTML = '<div class="error-msg">⚠️ Please upload an image first.</div>';
+      return;
+    }
+
+    // reset previous enhanced preview & messages
+    clearEnhancedPreview();
+    apiMessageDiv.innerHTML = '<div style="background:#eef2ff; border-radius:2rem; padding:0.5rem; text-align:center;">🔄 Sending to AI server ...</div>';
+    
+    const upscaleVal = getUpscaleFactor();
+    const outputFormat = formatSelect.value;  // 'JPG', 'PNG', 'WEBP'
+    
+    // prepare form data
+    const formData = new FormData();
+    formData.append('image', currentFile);
+    formData.append('upscale_factor', upscaleVal);
+    formData.append('format', outputFormat);
+    
+    // optional: for better enhancement we keep defaults.
+    const options = {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'X-Picsart-API-Key': API_KEY
+      }
     };
-
-    // Slider Logic
-    document.getElementById('slider').oninput = (e) => {
-        document.getElementById('after-wrap').style.width = e.target.value + "%";
-    };
-
-    document.getElementById('download-btn').onclick = () => {
-        const a = document.createElement("a");
-        a.href = imgAfter.src;
-        a.download = "gemini-enhanced.png";
-        a.click();
-    };
+    options.body = formData;
+    
+    setLoading(true);
+    
+    try {
+      const response = await fetch(API_URL, options);
+      
+      if (!response.ok) {
+        let errorDetail = `HTTP ${response.status}`;
+        try {
+          const errJson = await response.json();
+          errorDetail = errJson.message || errJson.error || JSON.stringify(errJson);
+        } catch(e) { /* ignore */ }
+        throw new Error(`API Error (${response.status}): ${errorDetail}`);
+      }
+      
+      const result = await response.json();
+      // Picsart API returns: { data: { url } } or similar according to docs
+      // The API returns directly a JSON with "data" object containing "url" field for upscaled image
+      let enhancedImageUrl = null;
+      if (result && result.data && result.data.url) {
+        enhancedImageUrl = result.data.url;
+      } 
+      // fallback some variations (some older endpoints)
+      else if (result && result.url) {
+        enhancedImageUrl = result.url;
+      }
+      else if (result && result.output_url) {
+        enhancedImageUrl = result.output_url;
+      }
+      else {
+        // If unexpected structure, try to parse
+        console.warn('Unexpected response structure', result);
+        throw new Error('Invalid API response: missing image URL');
+      }
+      
+      // fetch the enhanced image as blob for preview and download
+      const imgResponse = await fetch(enhancedImageUrl);
+      if (!imgResponse.ok) throw new Error('Failed to fetch enhanced image from CDN');
+      const imgBlob = await imgResponse.blob();
+      const blobUrl = URL.createObjectURL(imgBlob);
+      
+      enhancedBlobUrl = blobUrl;
+      enhancedDataBlob = imgBlob;
+      enhancedImg.src = blobUrl;
+      enhancedImg.style.display = 'block';
+      enhancedPlaceholder.style.display = 'none';
+      downloadBtn.style.display = 'flex';
+      
+      const upscaleText = upscaleVal === '1' ? ' (enhanced/denoised)' : ` ${upscaleVal}x upscaled`;
+      enhancedStatusSpan.innerText = `✅ Done${upscaleText} • ${outputFormat}`;
+      apiMessageDiv.innerHTML = `<div class="success-msg" style="background:#dcfce7; padding:0.5rem; border-radius:2rem;">🎉 Enhancement complete! Click download to save.</div>`;
+      
+    } catch (err) {
+      console.error('Enhancement error:', err);
+      let userMsg = err.message;
+      if (userMsg.includes('API Error (401)') || userMsg.includes('key')) userMsg = 'Invalid API Key or unauthorized. Please check your API key.';
+      else if (userMsg.includes('429')) userMsg = 'Too many requests. Please try again later.';
+      else if (userMsg.includes('fetch')) userMsg = 'Network error. Check your internet connection.';
+      apiMessageDiv.innerHTML = `<div class="error-msg">❌ Enhancement failed: ${userMsg}</div>`;
+      clearEnhancedPreview();   // ensure nothing broken
+    } finally {
+      setLoading(false);
+    }
+  }
+  
+  // download handler for enhanced image
+  downloadBtn.addEventListener('click', () => {
+    if (!enhancedDataBlob) {
+      alert('No enhanced image available. Please run enhancement first.');
+      return;
+    }
+    const upscaleVal = getUpscaleFactor();
+    const format = formatSelect.value.toLowerCase();
+    let extension = 'jpg';
+    if (format === 'PNG') extension = 'png';
+    else if (format === 'WEBP') extension = 'webp';
+    else extension = 'jpg';
+    
+    const fileName = `enhanced_${upscaleVal}x_${Date.now()}.${extension}`;
+    const downloadUrl = URL.createObjectURL(enhancedDataBlob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 200);
+  });
+  
+  // trigger enhance
+  enhanceBtn.addEventListener('click', enhanceImage);
+  
+  // prevent memory leaks: revoke object urls before unload
+  window.addEventListener('beforeunload', () => {
+    if (currentOriginalUrl) URL.revokeObjectURL(currentOriginalUrl);
+    if (enhancedBlobUrl) URL.revokeObjectURL(enhancedBlobUrl);
+  });
+  
+  // initial UI consistency: hide download btn
+  downloadBtn.style.display = 'none';
+  enhancedImg.style.display = 'none';
+  originalImg.style.display = 'none';
 </script>
 </body>
 </html>
